@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmHelper - Smart Farming Assistant</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/field.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #8BC34A;
+            --accent: #FFC107;
+            --text: #333;
+            --light-bg: #f9f9f9;
+            --card-bg: #ffffff;
+            --chat-user: #e3f2fd;
+            --chat-bot: #f1f8e9;
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%234caf50' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--light-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-widget {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-widget h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1 0 calc(50% - 8px);
+            background: var(--light-bg);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
+            padding: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .current-weather {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .language-selector select {
+            width: 100%;
+            padding: 8px;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user {
+            align-self: flex-end;
+            background: var(--chat-user);
+            border-bottom-right-radius: 0;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: var(--chat-bot);
+            border-bottom-left-radius: 0;
+        }
+
+        .message::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 10px;
+            height: 10px;
+        }
+
+        .user::after {
+            right: -10px;
+            border-left: 10px solid var(--chat-user);
+            border-bottom: 10px solid transparent;
+        }
+
+        .bot::after {
+            left: -10px;
+            border-right: 10px solid var(--chat-bot);
+            border-bottom: 10px solid transparent;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--chat-bot);
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            border-bottom-left-radius: 0;
+            display: flex;
+            gap: 5px;
+            visibility: hidden;
+        }
+
+        .typing-indicator.visible {
+            visibility: visible;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background: var(--light-bg);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            gap: 10px;
+        }
+
+        .input-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #777;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .input-btn:hover {
+            color: var(--primary);
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            outline: none;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+
+        #userInput:focus {
+            border-color: var(--primary);
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .send-btn:hover {
+            background: #3d8b40;
+        }
+
+        .attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 15px;
+        }
+
+        .attachment {
+            background: var(--light-bg);
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attachment i {
+            color: var(--primary);
+        }
+
+        .crop-advisor {
+            padding: 20px;
+            background: var(--light-bg);
+            overflow-y: auto;
+            width: 300px;
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .crop-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .crop-card h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 75%;
+        }
+
+        .crop-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .crop-tips {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .tip-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 5px 0;
+        }
+
+        .tip-icon {
+            color: var(--primary);
+        }
+
+        @media (max-width: 1024px) {
+            .crop-advisor {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .app-container {
+                height: calc(100vh - 40px);
+            }
+        }
+
+        /* Animations for plant growth */
+        .plant-animation {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        .soil {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20px;
+            background: #8D6E63;
+            border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+        }
+
+        .stem {
+            position: absolute;
+            bottom: 20px;
+            left: 48px;
+            width: 4px;
+            height: 0;
+            background: #558B2F;
+            animation: growStem 3s forwards;
+        }
+
+        .leaf {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background: #7CB342;
+            border-radius: 10px 0;
+            opacity: 0;
+        }
+
+        .leaf:nth-child(1) {
+            transform: rotate(-45deg);
+            bottom: 40px;
+            left: 40px;
+            animation: fadeInLeaf 0.5s 1s forwards;
+        }
+
+        .leaf:nth-child(2) {
+            transform: rotate(45deg);
+            bottom: 40px;
+            left: 60px;
+            animation: fadeInLeaf 0.5s 1.2s forwards;
+        }
+
+        .leaf:nth-child(3) {
+            transform: rotate(-45deg);
+            bottom: 60px;
+            left: 40px;
+            animation: fadeInLeaf 0.5s 1.4s forwards;
+        }
+
+        .leaf:nth-child(4) {
+            transform: rotate(45deg);
+            bottom: 60px;
+            left: 60px;
+            animation: fadeInLeaf 0.5s 1.6s forwards;
+        }
+
+        .flower {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #FFC107;
+            border-radius: 50%;
+            opacity: 0;
+            animation: bloomFlower 1s 2s forwards;
+        }
+
+        @keyframes growStem {
+            0% { height: 0; }
+            100% { height: 80px; }
+        }
+
+        @keyframes fadeInLeaf {
+            from { opacity: 0; transform: scale(0) rotate(-45deg); }
+            to { opacity: 1; transform: scale(1) rotate(-45deg); }
+        }
+
+        @keyframes fadeInLeaf2 {
+            from { opacity: 0; transform: scale(0) rotate(45deg); }
+            to { opacity: 1; transform: scale(1) rotate(45deg); }
+        }
+
+        @keyframes bloomFlower {
+            0% { opacity: 0; transform: translateX(-50%) scale(0); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .theme-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-option.active {
+            border-color: white;
+        }
+
+        .theme-green { background-color: #4CAF50; }
+        .theme-blue { background-color: #2196F3; }
+        .theme-orange { background-color: #FF9800; }
+
+        /* Voice Input Animation */
+        .voice-wave {
+            display: flex;
+            align-items: center;
+            height: 30px;
+            gap: 3px;
+            visibility: hidden;
+        }
+
+        .voice-wave.active {
+            visibility: visible;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 5px;
+            background-color: var(--primary);
+            border-radius: 3px;
+            animation: waveAnimation 1s infinite ease-in-out;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes waveAnimation {
+            0%, 100% { height: 5px; }
+            50% { height: 20px; }
+        }
+
+        /* Seasonal theme indicator */
+        .season-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+
+        .season-icon {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        /* Growing tips carousel */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+        }
+
+        .carousel-slides {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            padding: 15px;
+            background: var(--light-bg);
+            border-left: 3px solid var(--primary);
+        }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+        }
+
+        .carousel-dot.active {
+            background: var(--primary);
+        }
+
+        /* Chat message suggestions */
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .suggestion-chip {
+            background: var(--light-bg);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Weather badges */
+        .weather-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .weather-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Notification system */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Modal system */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-50px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: var(--text);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Image analysis section */
+        .image-upload {
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        /* Rich text formatting */
+        .formatting-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: var(--border-radius);
+            background: var(--light-bg);
+        }
+
+        .format-btn {
+            background: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .format-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1><i class="fas fa-seedling header-logo"></i> FarmHelper</h1>
+            <div class="theme-selector">
+                <div class="theme-option theme-green active" onclick="setTheme('green')"></div>
+                <div class="theme-option theme-blue" onclick="setTheme('blue')"></div>
+                <div class="theme-option theme-orange" onclick="setTheme('orange')"></div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-leaf"></i> Quick Actions</h3>
+                    <div class="quick-actions">
+                        <div class="action-btn" onclick="askQuestion('How to control aphids naturally?')">Pest Control</div>
+                        <div class="action-btn" onclick="askQuestion('Best fertilizer for tomatoes?')">Fertilizers</div>
+                        <div class="action-btn" onclick="askQuestion('How much water do cucumbers need?')">Watering Tips</div>
+                        <div class="action-btn" onclick="askQuestion('How to improve soil drainage?')">Soil Health</div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-cloud-sun"></i> Weather</h3>
+                    <div class="current-weather">
+                        <i class="fas fa-sun weather-icon"></i>
+                        <div>Sunny, 24°C</div>
+                        <div style="font-size: 0.8rem; color: #666;">Perfect for planting!</div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget plant-animation-container">
+                    <h3><i class="fas fa-spa"></i> Today's Growth</h3>
+                    <div class="plant-animation">
+                        <div class="soil"></div>
+                        <div class="stem"></div>
+                        <div class="leaf"></div>
+                        <div class="leaf"></div>
+                        <div class="leaf"></div>
+                        <div class="leaf"></div>
+                        <div class="flower"></div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-language"></i> Language</h3>
+                    <div class="language-selector">
+                        <select id="languageSelect" onchange="changeLanguage()">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="hi">हिन्दी</option>
+                            <option value="zh">中文</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-calendar-alt"></i> Season</h3>
+                    <div class="season-indicator">
+                        <i class="fas fa-sun season-icon"></i>
+                        <div>
+                            <div><strong>Summer</strong></div>
+                            <div style="font-size: 0.8rem;">Ideal for: Tomatoes, Peppers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="messages">
+                    <div class="message bot">
+                        👨‍🌾 Welcome to FarmHelper! I'm your smart farming assistant. How can I help with your crops today?
+                        <div class="suggestion-chips">
+                            <div class="suggestion-chip" onclick="askQuestion('What crops are best for sandy soil?')">Best crops for sandy soil</div>
+                            <div class="suggestion-chip" onclick="askQuestion('When to harvest carrots?')">When to harvest carrots</div>
+                            <div class="suggestion-chip" onclick="askQuestion('How to treat tomato blight?')">Treat tomato blight</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                
+                <div class="attachments" id="attachmentsArea" style="display: none;">
+                    <!-- Attachments will appear here -->
+                </div>
+                
+                <div class="input-container">
+                    <div class="input-tools">
+                        <button class="input-btn" id="voiceBtn" title="Voice Input">
+                            <i class="fas fa-microphone"></i>
+                            <div class="voice-wave" id="voiceWave">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </button>
+                        <button class="input-btn" id="attachBtn" title="Attach Image">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="input-btn" id="locationBtn" title="Share Location">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                    </div>
+                    <input type="text" id="userInput" placeholder="Ask about crops, pests, soil, weather..." />
+                    <button class="send-btn" id="sendBtn">
+                        <span>Send</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="crop-advisor">
+                <h3><i class="fas fa-clipboard-list"></i> Crop Advisor</h3>
+                
+                <div class="crop-card">
+                    <h3>Tomatoes</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%;"></div>
+                    </div>
+                    <div class="crop-status">
+                        <span>Growth: 75%</span>
+                        <span>14 days to harvest</span>
+                    </div>
+                    <div class="crop-tips">
+                        <div class="tip-item">
+                            <i class="fas fa-tint tip-icon"></i>
+                            <span>Water needed today</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-bug tip-icon"></i>
+                            <span>Check for aphids</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="crop-card">
+                    <h3>Cucumbers</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 45%;"></div>
+                    </div>
+                    <div class="crop-status">
+                        <span>Growth: 45%</span>
+                        <span>20 days to harvest</span>
+                    </div>
+                    <div class="crop-tips">
+                        <div class="tip-item">
+                            <i class="fas fa-sun tip-icon"></i>
+                            <span>Needs more sunlight</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel">
+                    <div class="carousel-slides" id="tipsCarousel">
+                        <div class="carousel-slide">
+                            <h4>Tip of the Day</h4>
+                            <p>Rotate crops yearly to prevent soil-borne diseases and maintain soil fertility.</p>
+                        </div>
+                        <div class="carousel-slide">
+                            <h4>Seasonal Advice</h4>
+                            <p>Apply mulch to conserve moisture and reduce weed growth during hot summer days.</p>
+                        </div>
+                        <div class="carousel-slide">
+                            <h4>Community Tip</h4>
+                            <p>Plant marigolds near tomatoes to repel pests naturally.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-controls" id="carouselControls">
+                        <div class="carousel-dot active" data-slide="0"></div>
+                        <div class="carousel-dot" data-slide="1"></div>
+                        <div class="carousel-dot" data-slide="2"></div>
+                    </div>
+                </div>
+                
+                <div class="weather-badges">
+                    <div class="weather-badge">
+                        <i class="fas fa-thermometer-half"></i>
+                        <span>High: 24°C</span>
+                    </div>
+                    <div class="weather-badge">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidity: 65%</span>
+                    </div>
+                    <div class="weather-badge">
+                        <i class="fas fa-wind"></i>
+                        <span>Wind: 10 km/h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification System -->
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle"></i>
+        <span id="notificationMessage">This is a notification</span>
+    </div>
+    
+    <!-- Modal System -->
+    <div class="modal-overlay" id="imageUploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Plant Analysis</h3>
+                <button class="input-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="image-upload" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p>Drag and drop an image of your plant, or click to upload</p>
+                    <input type="file" id="fileInput" style="display: none;" accept="image/*">
+                </div>
+                <div id="uploadPreview" style="display: none; margin-top: 20px;">
+                    <img id="previewImage" style="max-width: 100%; border-radius: 8px;">
+                    <div style="margin-top: 15px;">
+                        <h4>Analysis Results:</h4>
+                        <div id="analysisResults" style="margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                            <p><i class="fas fa-spinner fa-spin"></i> Analyzing image...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="analyzeBtn" disabled>Analyze Plant</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="locationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Share Location</h3>
+                <button class="input-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Sharing your location helps me provide better recommendations for your specific climate and growing conditions.</p>
+                <div id="locationMap" style="height: 200px; background: #f5f5f5; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #ff4444;"></i>
+                </div>
+                <div class="weather-badges">
+                    <div class="weather-badge">
+                        <i class="fas fa-map-pin"></i>
+                        <span id="locationText">Location not detected</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="shareLocationBtn">Share Location</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const messagesDiv = document.getElementById("messages");
+        const userInput = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const voiceBtn = document.getElementById("voiceBtn");
+        const attachBtn = document.getElementById("attachBtn");
+        const locationBtn = document.getElementById("locationBtn");
+        const typingIndicator = document.getElementById("typingIndicator");
+        const voiceWave = document.getElementById("voiceWave");
+        const notification = document.getElementById("notification");
+        const imageUploadModal = document.getElementById("imageUploadModal");
+        const locationModal = document.getElementById("locationModal");
+        const fileInput = document.getElementById("fileInput");
+        const dropZone = document.getElementById("dropZone");
+        const previewImage = document.getElementById("previewImage");
+        const uploadPreview = document.getElementById("uploadPreview");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const analysisResults = document.getElementById("analysisResults");
+        const attachmentsArea = document.getElementById("attachmentsArea");
+        const tipsCarousel = document.getElementById("tipsCarousel");
+        const carouselControls = document.getElementById("carouselControls");
+        const shareLocationBtn = document.getElementById("shareLocationBtn");
+        const locationText = document.getElementById("locationText");
+
+        // Bot response examples for demo purposes
+        const botResponses = {
+            "hello": "👨‍🌾 Hello! How can I help with your farming needs today?",
+            "hi": "👨‍🌾 Hi there! What farming questions do you have?",
+            "help": "👨‍🌾 I can help with crop advice, pest control, soil health, weather impacts, and more. What would you like to know?",
+            "fertilizer": "👨‍🌾 Here are some fertilizer recommendations:\n\n• Nitrogen (N): For leafy growth\n• Phosphorus (P): For root development\n• Potassium (K): For fruit production\n\nOrganic options include compost, manure, and bone meal. What crops are you fertilizing?",
+            "pests": "👨‍🌾 Common garden pests and solutions:\n\n• Aphids: Use neem oil or ladybugs\n• Slugs: Coffee grounds or diatomaceous earth\n• Caterpillars: Bacillus thuringiensis (BT) spray\n• Japanese beetles: Neem oil or hand picking\n\nWould you like specific advice for a particular pest?",
+            "water": "👨‍🌾 Watering tips:\n\n• Water deeply but infrequently\n• Water at the base of plants\n• Morning watering is best\n• Use mulch to retain moisture\n• Consider drip irrigation\n\nDifferent plants have different water needs. Which crops are you growing?",
+            "soil": "👨‍🌾 For healthy soil:\n\n• Test pH regularly (most plants prefer 6.0-7.0)\n• Add organic matter yearly\n• Use cover crops in off-seasons\n• Practice crop rotation\n• Avoid overworking wet soil\n\nWould you like tips for a specific soil type?",
+            "tomatoes": "👨‍🌾 Tomato growing tips:\n\n• Plant after last frost\n• Space 2-3 feet apart\n• Provide support (cage or stake)\n• Water consistently at base\n• Feed with balanced fertilizer\n• Prune suckers for indeterminate varieties\n\nAre you growing determinate or indeterminate varieties?",
+            "carrots": "👨‍🌾 For growing great carrots:\n\n• Loose, sandy soil is best\n• Direct sow seeds 1/4 inch deep\n• Thin to 2-3 inches apart\n• Keep soil consistently moist\n• Harvest when tops are 3/4 inch diameter\n\nCarrots typically take 70-80 days to mature. Do you need more specific advice?",
+            "weather": "👨‍🌾 Weather considerations for farming:\n\n• Frost protection: Row covers or water before sunrise\n• Heat stress: Provide shade and extra water\n• Heavy rain: Ensure good drainage\n• Wind: Use windbreaks for sensitive crops\n\nWhat specific weather concern are you dealing with?"
+        };
+
+        // Initialize the chat
+        document.addEventListener("DOMContentLoaded", function() {
+            // Focus on input
+            userInput.focus();
+            
+            // Event listeners
+            sendBtn.addEventListener("click", sendMessage);
+            userInput.addEventListener("keypress", function(e) {
+                if (e.key === "Enter") {
+                    sendMessage();
+                }
+            });
+            
+            voiceBtn.addEventListener("click", toggleVoiceInput);
+            attachBtn.addEventListener("click", () => showModal(imageUploadModal));
+            locationBtn.addEventListener("click", () => showModal(locationModal));
+            
+            dropZone.addEventListener("click", () => fileInput.click());
+            fileInput.addEventListener("change", handleFileSelect);
+            
+            dropZone.addEventListener("dragover", handleDragOver);
+            dropZone.addEventListener("drop", handleFileDrop);
+            
+            analyzeBtn.addEventListener("click", analyzeImage);
+            shareLocationBtn.addEventListener("click", getLocation);
+            
+            // Setup carousel
+            setupCarousel();
+            
+            // Initialize notification
+            showNotification("Welcome to FarmHelper! Ask me anything about farming.");
+        });
+
+        // Send message function
+        function sendMessage() {
+            const msg = userInput.value.trim();
+            if (msg) {
+                // Add user message
+                addMessage("user", msg);
+                
+                // Clear input
+                userInput.value = "";
+                
+                // Show typing indicator
+                typingIndicator.classList.add("visible");
+                
+                // Simulate bot response with delay
+                setTimeout(() => {
+                    // Hide typing indicator
+                    typingIndicator.classList.remove("visible");
+                    
+                    // Generate bot response
+                    const botResponse = generateBotResponse(msg);
+                    
+                    // Add bot message
+                    addMessage("bot", botResponse);
+                }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+            }
+        }
+
+        // Add message to chat
+        function addMessage(role, text) {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${role}`;
+            
+            // Process text for line breaks
+            const formattedText = text.replace(/\n/g, "<br>");
+            msgDiv.innerHTML = formattedText;
+            
+            // Add suggestions if bot message
+            if (role === "bot" && Math.random() > 0.7) {
+                addSuggestions(msgDiv);
+            }
+            
+            messagesDiv.appendChild(msgDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Generate bot response (simplified for demo)
+        function generateBotResponse(msg) {
+            // Convert message to lowercase for matching
+            const lowercaseMsg = msg.toLowerCase();
+            
+            // Check for keywords in the message
+            for (const keyword in botResponses) {
+                if (lowercaseMsg.includes(keyword)) {
+                    return botResponses[keyword];
+                }
+            }
+            
+            // Default response if no keywords matched
+            return "👨‍🌾 That's an interesting farming question. I can help with crop advice, pest control, soil health, and weather impacts. Could you provide more details about what you're looking for?";
+        }
+
+        // Add suggestion chips to bot messages
+        function addSuggestions(msgDiv) {
+            const chips = document.createElement("div");
+            chips.className = "suggestion-chips";
+            
+            // Random suggestions
+            const suggestions = [
+                "Best time to plant potatoes",
+                "Natural pest control methods",
+                "How to improve soil drainage",
+                "Signs of overwatering",
+                "Companion planting guide",
+                "How to make compost",
+                "Organic fertilizer options",
+                "Crop rotation benefits",
+                "When to harvest onions",
+                "How to prevent tomato blight"
+            ];
+            
+            // Shuffle and take first 3
+            const shuffled = suggestions.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 3);
+            
+            selected.forEach(suggestion => {
+                const chip = document.createElement("div");
+                chip.className = "suggestion-chip";
+                chip.textContent = suggestion;
+                chip.onclick = () => askQuestion(suggestion);
+                chips.appendChild(chip);
+            });
+            
+            msgDiv.appendChild(chips);
+        }
+
+        // Helper function to ask questions from suggestion chips
+        function askQuestion(question) {
+            userInput.value = question;
+            sendMessage();
+        }
+
+        // Voice input functionality
+        function toggleVoiceInput() {
+            // For demo purposes, we'll just simulate voice input
+            if (voiceWave.classList.contains("active")) {
+                voiceWave.classList.remove("active");
+                showNotification("Voice input stopped");
+                
+                // Simulate receiving a voice command
+                setTimeout(() => {
+                    userInput.value = "How to control aphids naturally?";
+                    sendMessage();
+                }, 500);
+            } else {
+                voiceWave.classList.add("active");
+                showNotification("Listening... Speak your farming question");
+                
+                // Simulate listening for 3 seconds
+                setTimeout(() => {
+                    if (voiceWave.classList.contains("active")) {
+                        toggleVoiceInput();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            notification.querySelector("#notificationMessage").textContent = message;
+            notification.classList.add("show");
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 5000);
+        }
+
+        // Modal functions
+        function showModal(modal) {
+            // Hide all modals first
+            document.querySelectorAll(".modal-overlay").forEach(m => {
+                m.classList.remove("active");
+            });
+            
+            // Show the requested modal
+            modal.classList.add("active");
+        }
+
+        function closeModal() {
+            document.querySelectorAll(".modal-overlay").forEach(modal => {
+                modal.classList.remove("active");
+            });
+            
+            // Reset upload preview
+            uploadPreview.style.display = "none";
+            analyzeBtn.disabled = true;
+        }
+
+        // File handling functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.style.borderColor = "#4CAF50";
+            dropZone.style.background = "rgba(76, 175, 80, 0.1)";
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.style.borderColor = "#ccc";
+            dropZone.style.background = "none";
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFiles(e.dataTransfer.files);
+            }
+        }
+
+        function handleFileSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFiles(e.target.files);
+            }
+        }
+
+        function handleFiles(files) {
+            const file = files[0];
+            
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    uploadPreview.style.display = "block";
+                    analyzeBtn.disabled = false;
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                showNotification("Please select an image file");
+            }
+        }
+
+        // Simulate plant analysis
+        function analyzeImage() {
+            analysisResults.innerHTML = "<p><i class='fas fa-spinner fa-spin'></i> Analyzing image...</p>";
+            
+            // Simulate analysis delay
+            setTimeout(() => {
+                // Random results for demo
+                const issues = [
+                    "Identified: Tomato plant",
+                    "Condition: Early signs of powdery mildew detected",
+                    "Recommendation: Apply neem oil spray every 7 days",
+                    "Additional: Improve air circulation around plants"
+                ];
+                
+                analysisResults.innerHTML = issues.map(issue => `<p>• ${issue}</p>`).join("");
+                
+                // Add image to chat
+                addAttachment("Plant Image", "image");
+                
+                // Close modal after a short delay
+                setTimeout(closeModal, 1500);
+                
+                // Bot responds to the image
+                setTimeout(() => {
+                    addMessage("bot", "👨‍🌾 I analyzed your plant image. It appears to be a tomato plant with early signs of powdery mildew. I recommend applying a neem oil spray every 7 days and improving air circulation around the plants. Would you like more information about treating powdery mildew?");
+                }, 2000);
+                
+            }, 2000);
+        }
+
+        // Add attachment to the chat interface
+        function addAttachment(name, type) {
+            attachmentsArea.style.display = "flex";
+            
+            const attachment = document.createElement("div");
+            attachment.className = "attachment";
+            
+            let icon = "fa-file";
+            if (type === "image") icon = "fa-image";
+            if (type === "location") icon = "fa-map-marker-alt";
+            
+            attachment.innerHTML = `<i class="fas ${icon}"></i> ${name}`;
+            attachmentsArea.appendChild(attachment);
+        }
+
+        // Carousel functionality
+        function setupCarousel() {
+            const dots = carouselControls.querySelectorAll(".carousel-dot");
+            
+            dots.forEach(dot => {
+                dot.addEventListener("click", () => {
+                    const slideIndex = parseInt(dot.getAttribute("data-slide"));
+                    
+                    // Update active dot
+                    dots.forEach(d => d.classList.remove("active"));
+                    dot.classList.add("active");
+                    
+                    // Move carousel
+                    tipsCarousel.style.transform = `translateX(-${slideIndex * 100}%)`;
+                });
+            });
+            
+            // Auto-advance carousel
+            let currentSlide = 0;
+            const totalSlides = dots.length;
+            
+            setInterval(() => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                
+                // Update active dot
+                dots.forEach(d => d.classList.remove("active"));
+                dots[currentSlide].classList.add("active");
+                
+                // Move carousel
+                tipsCarousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }, 5000);
+        }
+
+        // Location functions
+        function getLocation() {
+            locationText.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Detecting location...";
+            
+            // Simulate geolocation for demo
+            setTimeout(() => {
+                locationText.textContent = "Detected: Farming Region, CA";
+                
+                // Add location to chat
+                addAttachment("Location: Farming Region, CA", "location");
+                
+                // Close modal after a short delay
+                setTimeout(closeModal, 1000);
+                
+                // Bot responds to the location
+                setTimeout(() => {
+                    addMessage("bot", "👨‍🌾 Based on your location in Farming Region, CA, here are some recommendations:\n\n• Current growing season is ideal for: Tomatoes, Peppers, Corn\n• Local pest alert: Increased aphid activity reported\n• Weather forecast: Warm and dry, consider increased watering\n\nWould you like specific crop recommendations for your region?");
+                }, 1500);
+            }, 2000);
+        }
+
+        // Theme changing functionality
+        function setTheme(theme) {
+            const root = document.documentElement;
+            const themeOptions = document.querySelectorAll(".theme-option");
+            
+            // Reset active status
+            themeOptions.forEach(option => option.classList.remove("active"));
+            
+            // Set new theme
+            switch(theme) {
+                case "green":
+                    root.style.setProperty("--primary", "#4CAF50");
+                    root.style.setProperty("--secondary", "#8BC34A");
+                    root.style.setProperty("--accent", "#FFC107");
+                    document.querySelector(".theme-green").classList.add("active");
+                    break;
+                case "blue":
+                    root.style.setProperty("--primary", "#2196F3");
+                    root.style.setProperty("--secondary", "#03A9F4");
+                    root.style.setProperty("--accent", "#FF9800");
+                    document.querySelector(".theme-blue").classList.add("active");
+                    break;
+                case "orange":
+                    root.style.setProperty("--primary", "#FF9800");
+                    root.style.setProperty("--secondary", "#FF5722");
+                    root.style.setProperty("--accent", "#4CAF50");
+                    document.querySelector(".theme-orange").classList.add("active");
+                    break;
+            }
+            
+            showNotification(`Theme changed to ${theme}`);
+        }
+
+        // Language change functionality
+        function changeLanguage() {
+            const lang = document.getElementById("languageSelect").value;
+            const languages = {
+                en: "English",
+                es: "Spanish",
+                fr: "French",
+                de: "German",
+                hi: "Hindi",
+                zh: "Chinese"
+            };
+            
+            showNotification(`Language changed to ${languages[lang]}`);
+            
+            // Simulate bot response in the new language
+            setTimeout(() => {
+                let message = "👨‍🌾 I've switched to English. How can I help you today?";
+                
+                if (lang === "es") message = "👨‍🌾 He cambiado a español. ¿Cómo puedo ayudarte hoy?";
+                if (lang === "fr") message = "👨‍🌾 Je suis passé au français. Comment puis-je vous aider aujourd'hui?";
+                if (lang === "de") message = "👨‍🌾 Ich bin auf Deutsch umgestiegen. Wie kann ich Ihnen heute helfen?";
+                if (lang === "hi") message = "👨‍🌾 मैंने हिंदी में बदल दिया है। आज मैं आपकी कैसे मदद कर सकता हूं?";
+                if (lang === "zh") message = "👨‍🌾 我已切换为中文。今天我能帮您什么？";
+                
+                addMessage("bot", message);
+            }, 500);
+        }
+    </script>
+</body>
+</html>

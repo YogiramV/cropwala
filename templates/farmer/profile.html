@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Farmer Profile{% endblock %}
+{% block content %}
+<div class="card profile-card">
+    <h2 class="card-title"><i class="fas fa-tractor"></i> Your Profile</h2>
+    <form method="POST" id="profile-form" class="form-grid">
+        <div class="form-group" style="--i: 1">
+            <label for="name"><i class="fas fa-user"></i> Name</label>
+            <input type="text" id="name" name="name" value="{{ farmer.name }}" required>
+            <span class="form-error" id="name-error"></span>
+        </div>
+        <div class="form-group" style="--i: 2">
+            <label for="phone"><i class="fas fa-phone"></i> Phone</label>
+            <input type="text" id="phone" name="phone" value="{{ farmer.phone }}" required>
+            <span class="form-error" id="phone-error"></span>
+        </div>
+        <div class="form-group" style="--i: 3">
+            <label for="location"><i class="fas fa-map-marker-alt"></i> Location</label>
+            <input type="text" id="location" name="location" value="{{ farmer.location }}" required>
+            <span class="form-error" id="location-error"></span>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-save"></i> Update Profile <span class="loading-spinner"></span></button>
+    </form>
+</div>
+<div class="modal" id="confirm-modal">
+    <div class="modal-content">
+        <h3>Confirm Update</h3>
+        <p>Are you sure you want to update your profile?</p>
+        <div class="modal-actions">
+            <button class="btn btn-pulse" id="confirm-update"><i class="fas fa-check"></i> Yes</button>
+            <button class="btn btn-secondary btn-pulse" id="cancel-update"><i class="fas fa-times"></i> No</button>
+        </div>
+    </div>
+</div>
+<style>
+    .profile-card {
+        max-width: 400px;
+        margin: 40px auto;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .form-grid {
+        display: grid;
+        gap: 15px;
+    }
+
+    .form-group {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: slideInRight 0.3s ease-in;
+    }
+
+    #profile-form.invalid {
+        animation: shake 0.3s ease-in-out;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: var(--bg-card);
+        padding: 20px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        max-width: 400px;
+        text-align: center;
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 480px) {
+        .profile-card {
+            margin: 20px;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#profile-form');
+        const nameInput = document.querySelector('#name');
+        const phoneInput = document.querySelector('#phone');
+        const locationInput = document.querySelector('#location');
+        const nameError = document.querySelector('#name-error');
+        const phoneError = document.querySelector('#phone-error');
+        const locationError = document.querySelector('#location-error');
+        const modal = document.querySelector('#confirm-modal');
+        const confirmUpdate = document.querySelector('#confirm-update');
+        const cancelUpdate = document.querySelector('#cancel-update');
+
+        // Real-time validation
+        nameInput.addEventListener('input', () => {
+            if (!nameInput.value.trim()) {
+                nameError.textContent = 'Name is required';
+                nameInput.setCustomValidity('Name required');
+            } else {
+                nameError.textContent = '';
+                nameInput.setCustomValidity('');
+            }
+        });
+
+        phoneInput.addEventListener('input', () => {
+            if (!phoneInput.value.match(/^\+?[\d\s-]{10,}$/)) {
+                phoneError.textContent = 'Please enter a valid phone number';
+                phoneInput.setCustomValidity('Invalid phone');
+            } else {
+                phoneError.textContent = '';
+                phoneInput.setCustomValidity('');
+            }
+        });
+
+        locationInput.addEventListener('input', () => {
+            if (!locationInput.value.trim()) {
+                locationError.textContent = 'Location is required';
+                locationInput.setCustomValidity('Location required');
+            } else {
+                locationError.textContent = '';
+                locationInput.setCustomValidity('');
+            }
+        });
+
+        // Modal for confirmation
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let valid = true;
+
+            if (!nameInput.value.trim()) {
+                nameError.textContent = 'Name is required';
+                valid = false;
+            }
+
+            if (!phoneInput.value.match(/^\+?[\d\s-]{10,}$/)) {
+                phoneError.textContent = 'Please enter a valid phone number';
+                valid = false;
+            }
+
+            if (!locationInput.value.trim()) {
+                locationError.textContent = 'Location is required';
+                valid = false;
+            }
+
+            if (valid) {
+                modal.style.display = 'flex';
+            } else {
+                form.classList.add('invalid');
+                setTimeout(() => form.classList.remove('invalid'), 300);
+            }
+        });
+
+        confirmUpdate.addEventListener('click', () => {
+            form.submit();
+        });
+
+        cancelUpdate.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    });
+</script>
+{% endblock %}

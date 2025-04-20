@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% block title %}Buyer Dashboard{% endblock %}
+{% block content %}
+<div class="hero-section">
+    <h1>Welcome, {{ session.name }}!</h1>
+    <p>Discover fresh products and active auctions to grow your business.</p>
+    <a href="#products" class="btn btn-accent btn-pulse"><i class="fas fa-shopping-basket"></i> Explore Products</a>
+</div>
+<div class="card dashboard-card">
+    <div class="dashboard-stats">
+        <div class="stat">
+            <i class="fas fa-envelope"></i>
+            <p>Unread Messages: <span class="badge">{{ unread_count }}</span></p>
+        </div>
+    </div>
+    <h2 class="card-title" id="products"><i class="fas fa-seedling"></i> Available Products</h2>
+    <div class="product-controls">
+        <div class="filter-group">
+            <label for="category-filter">Filter by Category:</label>
+            <select id="category-filter">
+                <option value="">All</option>
+                <option value="grains">Grains</option>
+                <option value="vegetables">Vegetables</option>
+                <option value="fruits">Fruits</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="sort-price">Sort by Price:</label>
+            <select id="sort-price">
+                <option value="asc">Low to High</option>
+                <option value="desc">High to Low</option>
+            </select>
+        </div>
+    </div>
+    <div class="product-grid" id="product-grid">
+        {% for product in products %}
+        <div class="product-card" style="--i: {{ loop.index0 }}" data-category="{{ product.category | default('') }}" data-price="{{ product.price }}">
+            <div class="product-image">
+                {% if product.image %}
+                <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="zoom-image">
+                {% else %}
+                <span class="no-image">No Image</span>
+                {% endif %}
+            </div>
+            <div class="product-details">
+                <h4 class="product-title">{{ product.name }}</h4>
+                <p>{{ product.description | truncate(100) }}</p>
+                <p class="product-meta">Farmer: {{ product.farmer_name }}</p>
+                <p class="product-meta">Quantity: {{ product.quantity }} {{ product.unit }}</p>
+                <p class="product-price">${{ product.price }}</p>
+                <a href="{{ url_for('buyer.product_details', product_id=product._id) }}" class="btn btn-pulse"><i class="fas fa-eye"></i> View Details</a>
+            </div>
+        </div>
+        {% else %}
+        <p class="no-products">No products available.</p>
+        {% endfor %}
+    </div>
+    <div class="pagination">
+        <button id="prev-page" class="btn btn-secondary" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+        <span id="page-info">Page 1</span>
+        <button id="next-page" class="btn btn-secondary">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+    <h2 class="card-title"><i class="fas fa-gavel"></i> Active Auctions</h2>
+    <div class="auction-grid">
+        {% for auction in auctions %}
+        <div class="auction-card" style="--i: {{ loop.index0 }}">
+            <h4>{{ auction.description }}</h4>
+            <p class="auction-meta">Current Price: ${{ auction.current_price }}</p>
+            <p class="auction-meta">Ends: <span class="auction-end" data-end="{{ auction.end_date.strftime('%Y-%m-%d %H:%M:%S') }}">{{ auction.end_date.strftime('%Y-%m-%d %H:%M') }}</span></p>
+            <p class="auction-timer" id="timer-{{ auction._id }}"></p>
+            <a href="{{ url_for('auction.view_auction', auction_id=auction._id) }}" class="btn btn-pulse auction-btn" data-auction-id="{{ auction._id }}"><i class="fas fa-gavel"></i> View Auction</a>
+        </div>
+        {% else %}
+        <p class="no-auctions">No active auctions.</p>
+        {% endfor %}
+    </div>
+</div>
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .dashboard-stats {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.1rem;
+    }
+
+    .stat .badge {
+        background-color: var(--accent-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .product-controls {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-group label {
+        font-weight: 500;
+    }
+
+    .filter-group select {
+        padding: 8px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--text-secondary);
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .product-card {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .product-image {
+        height: 200px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+
+    .zoom-image {
+        transition: transform 0.5s ease;
+    }
+
+    .product-card:hover .zoom-image {
+        transform: scale(1.1);
+    }
+
+    .no-image {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .no-products, .no-auctions {
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 15px 0;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .auction-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .auction-card {
+        background-color: var(--bg-card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 20px;
+        transition: transform var(--transition-speed) ease;
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .auction-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .auction-meta {
+        color: var(--text-secondary);
+        margin: 5px 0;
+    }
+
+    .auction-timer {
+        font-weight: bold;
+        color: var(--primary-color);
+        margin: 10px 0;
+        animation: pulse 2s infinite;
+    }
+
+    .auction-timer.warning {
+        color: var(--warning-color);
+        animation: shake 0.5s infinite;
+    }
+
+    .auction-timer.critical {
+        color: var(--error-color);
+        animation: shake 0.3s infinite;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+
+        .product-controls {
+            flex-direction: column;
+        }
+
+        .product-grid, .auction-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Product filtering and sorting
+        const productGrid = document.querySelector('#product-grid');
+        const products = Array.from(document.querySelectorAll('.product-card'));
+        const categoryFilter = document.querySelector('#category-filter');
+        const sortPrice = document.querySelector('#sort-price');
+        const prevPage = document.querySelector('#prev-page');
+        const nextPage = document.querySelector('#next-page');
+        const pageInfo = document.querySelector('#page-info');
+        const itemsPerPage = 6;
+        let currentPage = 1;
+
+        function updateProducts() {
+            const category = categoryFilter.value;
+            const sortOrder = sortPrice.value;
+            let filteredProducts = products;
+
+            // Filter by category
+            if (category) {
+                filteredProducts = products.filter(product => 
+                    product.dataset.category.toLowerCase() === category.toLowerCase());
+            }
+
+            // Sort by price
+            filteredProducts.sort((a, b) => {
+                const priceA = parseFloat(a.dataset.price);
+                const priceB = parseFloat(b.dataset.price);
+                return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+            });
+
+            // Pagination
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            productGrid.innerHTML = '';
+            filteredProducts.slice(start, end).forEach(product => productGrid.appendChild(product));
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevPage.disabled = currentPage === 1;
+            nextPage.disabled = currentPage === totalPages;
+        }
+
+        categoryFilter.addEventListener('change', () => {
+            currentPage = 1;
+            updateProducts();
+        });
+
+        sortPrice.addEventListener('change', () => {
+            currentPage = 1;
+            updateProducts();
+        });
+
+        prevPage.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updateProducts();
+            }
+        });
+
+        nextPage.addEventListener('click', () => {
+            const totalPages = Math.ceil(products.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateProducts();
+            }
+        });
+
+        updateProducts();
+
+        // Auction countdown timers
+        document.querySelectorAll('.auction-end').forEach(end => {
+            const auctionId = end.closest('.auction-card').querySelector('.auction-btn').dataset.auctionId;
+            const timerElement = document.querySelector(`#timer-${auctionId}`);
+            const endDate = new Date(end.dataset.end);
+
+            function updateTimer() {
+                const now = new Date();
+                const timeLeft = endDate - now;
+                if (timeLeft <= 0) {
+                    timerElement.textContent = 'Auction Ended';
+                    timerElement.classList.add('critical');
+                    const auctionBtn = document.querySelector(`[data-auction-id="${auctionId}"]`);
+                    auctionBtn.classList.add('disabled');
+                    auctionBtn.style.pointerEvents = 'none';
+                    return;
+                }
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                timerElement.textContent = `Time Left: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                if (timeLeft < 600000) {
+                    timerElement.classList.add('critical');
+                } else if (timeLeft < 3600000) {
+                    timerElement.classList.add('warning');
+                }
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        });
+    });
+</script>
+{% endblock %}

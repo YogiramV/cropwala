@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="card login-card">
+    <h2 class="card-title"><i class="fas fa-sign-in-alt"></i> Login</h2>
+    <form method="POST" id="login-form" class="form-grid">
+        <div class="form-group" style="--i: 1">
+            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+            <input type="email" id="email" name="email" required>
+            <span class="form-error" id="email-error"></span>
+        </div>
+        <div class="form-group" style="--i: 2">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" required>
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <span class="form-error" id="password-error"></span>
+        </div>
+        <div class="form-group" style="--i: 3">
+            <label for="user_type"><i class="fas fa-user-tag"></i> User Type</label>
+            <div class="select-wrapper">
+                <select id="user_type" name="user_type" required>
+                    <option value="" disabled selected>Select user type</option>
+                    <option value="farmer">Farmer</option>
+                    <option value="buyer">Buyer</option>
+                </select>
+            </div>
+            <span class="form-error" id="user-type-error"></span>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-sign-in-alt"></i> Login <span class="loading-spinner"></span></button>
+    </form>
+    <p class="register-links">
+        Don't have an account? 
+        <a href="{{ url_for('auth.register_farmer') }}">Register as Farmer</a> or 
+        <a href="{{ url_for('auth.register_buyer') }}">Register as Buyer</a>
+    </p>
+</div>
+<style>
+    .login-card {
+        max-width: 400px;
+        margin: 40px auto;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .form-grid {
+        display: grid;
+        gap: 15px;
+    }
+
+    .form-group {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition: color var(--transition-speed) ease;
+    }
+
+    .toggle-password:hover {
+        color: var(--primary-color);
+    }
+
+    .select-wrapper {
+        position: relative;
+    }
+
+    .select-wrapper select {
+        width: 100%;
+        padding-right: 30px;
+        appearance: none;
+    }
+
+    .select-wrapper::after {
+        content: '▼';
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .register-links {
+        text-align: center;
+        margin-top: 15px;
+        color: var(--text-secondary);
+    }
+
+    .register-links a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: text-decoration var(--transition-speed) ease;
+    }
+
+    .register-links a:hover {
+        text-decoration: underline;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: slideInRight 0.3s ease-in;
+    }
+
+    #login-form.invalid {
+        animation: shake 0.3s ease-in-out;
+    }
+
+    @media (max-width: 480px) {
+        .login-card {
+            margin: 20px;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#login-form');
+        const emailInput = document.querySelector('#email');
+        const passwordInput = document.querySelector('#password');
+        const userTypeInput = document.querySelector('#user_type');
+        const emailError = document.querySelector('#email-error');
+        const passwordError = document.querySelector('#password-error');
+        const userTypeError = document.querySelector('#user-type-error');
+        const togglePassword = document.querySelector('.toggle-password');
+
+        // Password visibility toggle
+        togglePassword.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            togglePassword.querySelector('i').classList.toggle('fa-eye', isPassword);
+            togglePassword.querySelector('i').classList.toggle('fa-eye-slash', !isPassword);
+        });
+
+        // Real-time validation
+        emailInput.addEventListener('input', () => {
+            if (!emailInput.value.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+                emailError.textContent = 'Please enter a valid email';
+                emailInput.setCustomValidity('Invalid email');
+            } else {
+                emailError.textContent = '';
+                emailInput.setCustomValidity('');
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                passwordInput.setCustomValidity('Password too short');
+            } else {
+                passwordError.textContent = '';
+                passwordInput.setCustomValidity('');
+            }
+        });
+
+        userTypeInput.addEventListener('change', () => {
+            if (!userTypeInput.value) {
+                userTypeError.textContent = 'Please select a user type';
+                userTypeInput.setCustomValidity('User type required');
+            } else {
+                userTypeError.textContent = '';
+                userTypeInput.setCustomValidity('');
+            }
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+
+            if (!emailInput.value.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+                emailError.textContent = 'Please enter a valid email';
+                valid = false;
+            }
+
+            if (passwordInput.value.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                valid = false;
+            }
+
+            if (!userTypeInput.value) {
+                userTypeError.textContent = 'Please select a user type';
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                form.classList.add('invalid');
+                setTimeout(() => form.classList.remove('invalid'), 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

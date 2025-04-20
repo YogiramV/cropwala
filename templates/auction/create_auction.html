@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Create Auction{% endblock %}
+{% block content %}
+<div class="card auction-form-card">
+    <h2 class="card-title"><i class="fas fa-gavel"></i> Create Auction for {{ product.name }}</h2>
+    <form method="POST" id="auction-form">
+        <div class="form-grid">
+            <div class="form-group" style="--i: 1">
+                <label for="end_date"><i class="fas fa-calendar-alt"></i> End Date and Time</label>
+                <input type="datetime-local" id="end_date" name="end_date" required>
+                <span class="form-error" id="end-date-error"></span>
+            </div>
+            <div class="form-group" style="--i: 2">
+                <label for="starting_price"><i class="fas fa-dollar-sign"></i> Starting Price ($)</label>
+                <input type="number" id="starting_price" name="starting_price" step="0.01" min="0" required>
+                <span class="form-error" id="starting-price-error"></span>
+            </div>
+            <div class="form-group" style="--i: 3">
+                <label for="min_increment"><i class="fas fa-plus-circle"></i> Minimum Bid Increment ($)</label>
+                <input type="number" id="min_increment" name="min_increment" step="0.01" min="0" required>
+                <span class="form-error" id="min-increment-error"></span>
+            </div>
+            <div class="form-group full-width" style="--i: 4">
+                <label for="description"><i class="fas fa-file-alt"></i> Description</label>
+                <textarea id="description" name="description" rows="5" required></textarea>
+                <span class="form-error" id="description-error"></span>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-gavel"></i> Create Auction <span class="loading-spinner"></span></button>
+    </form>
+</div>
+<style>
+    .auction-form-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        animation: fadeInUp 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    input, textarea {
+        border-radius: var(--border-radius);
+        padding: 12px;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: slideInRight 0.3s ease-in;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#auction-form');
+        const endDateInput = document.querySelector('#end_date');
+        const startingPriceInput = document.querySelector('#starting_price');
+        const minIncrementInput = document.querySelector('#min_increment');
+        const descriptionInput = document.querySelector('#description');
+        const endDateError = document.querySelector('#end-date-error');
+        const startingPriceError = document.querySelector('#starting-price-error');
+        const minIncrementError = document.querySelector('#min-increment-error');
+        const descriptionError = document.querySelector('#description-error');
+
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+
+            // Validate end date (must be future)
+            const now = new Date();
+            const endDate = new Date(endDateInput.value);
+            if (endDate <= now) {
+                endDateError.textContent = 'End date must be in the future';
+                endDateInput.setCustomValidity('Invalid date');
+                valid = false;
+            } else {
+                endDateError.textContent = '';
+                endDateInput.setCustomValidity('');
+            }
+
+            // Validate starting price (positive)
+            const startingPrice = parseFloat(startingPriceInput.value);
+            if (isNaN(startingPrice) || startingPrice <= 0) {
+                startingPriceError.textContent = 'Starting price must be positive';
+                startingPriceInput.setCustomValidity('Invalid price');
+                valid = false;
+            } else {
+                startingPriceError.textContent = '';
+                startingPriceInput.setCustomValidity('');
+            }
+
+            // Validate minimum increment (positive)
+            const minIncrement = parseFloat(minIncrementInput.value);
+            if (isNaN(minIncrement) || minIncrement <= 0) {
+                minIncrementError.textContent = 'Minimum increment must be positive';
+                minIncrementInput.setCustomValidity('Invalid increment');
+                valid = false;
+            } else {
+                minIncrementError.textContent = '';
+                minIncrementInput.setCustomValidity('');
+            }
+
+            // Validate description (non-empty)
+            if (!descriptionInput.value.trim()) {
+                descriptionError.textContent = 'Description cannot be empty';
+                descriptionInput.setCustomValidity('Invalid description');
+                valid = false;
+            } else {
+                descriptionError.textContent = '';
+                descriptionInput.setCustomValidity('');
+            }
+
+            if (!valid) {
+                e.preventDefault();
+            }
+        });
+
+        // Real-time validation
+        endDateInput.addEventListener('input', () => {
+            const now = new Date();
+            const endDate = new Date(endDateInput.value);
+            if (endDate <= now) {
+                endDateError.textContent = 'End date must be in the future';
+                endDateInput.setCustomValidity('Invalid date');
+            } else {
+                endDateError.textContent = '';
+                endDateInput.setCustomValidity('');
+            }
+        });
+
+        startingPriceInput.addEventListener('input', () => {
+            const value = parseFloat(startingPriceInput.value);
+            if (isNaN(value) || value <= 0) {
+                startingPriceError.textContent = 'Starting price must be positive';
+                startingPriceInput.setCustomValidity('Invalid price');
+            } else {
+                startingPriceError.textContent = '';
+                startingPriceInput.setCustomValidity('');
+            }
+        });
+
+        minIncrementInput.addEventListener('input', () => {
+            const value = parseFloat(minIncrementInput.value);
+            if (isNaN(value) || value <= 0) {
+                minIncrementError.textContent = 'Minimum increment must be positive';
+                minIncrementInput.setCustomValidity('Invalid increment');
+            } else {
+                minIncrementError.textContent = '';
+                minIncrementInput.setCustomValidity('');
+            }
+        });
+
+        descriptionInput.addEventListener('input', () => {
+            if (!descriptionInput.value.trim()) {
+                descriptionError.textContent = 'Description cannot be empty';
+                descriptionInput.setCustomValidity('Invalid description');
+            } else {
+                descriptionError.textContent = '';
+                descriptionInput.setCustomValidity('');
+            }
+        });
+    });
+</script>
+{% endblock %}

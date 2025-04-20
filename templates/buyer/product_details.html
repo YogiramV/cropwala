@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Product Details{% endblock %}
+{% block content %}
+<div class="card product-details-card">
+    <h2 class="card-title"><i class="fas fa-seedling"></i> {{ product.name }}</h2>
+    <div class="product-details-grid">
+        <div class="product-image">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="zoom-image">
+            {% else %}
+            <span class="no-image">No Image</span>
+            {% endif %}
+        </div>
+        <div class="product-info">
+            <dl>
+                <dt>Description</dt>
+                <dd>{{ product.description }}</dd>
+                <dt>Farmer</dt>
+                <dd>{{ farmer.name }}</dd>
+                <dt>Quantity</dt>
+                <dd>{{ product.quantity }} {{ product.unit }}</dd>
+                <dt>Price</dt>
+                <dd>${{ product.price }}</dd>
+                <dt>Harvest Date</dt>
+                <dd>{{ product.harvest_date }}</dd>
+            </dl>
+            <a href="{{ url_for('create_contract', product_id=product._id) }}" class="btn btn-pulse"><i class="fas fa-file-contract"></i> Request Contract</a>
+        </div>
+    </div>
+    <h3>Messages with {{ farmer.name }}</h3>
+    <div class="message-list" id="message-list">
+        {% for message in messages %}
+        <div class="message {% if message.sender_id == session.user_id %}message-sent{% else %}message-received{% endif %}" style="--i: {{ loop.index0 }}">
+            <div class="message-content">
+                <p>{{ message.content }}</p>
+                <p class="message-time"><small>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+            </div>
+        </div>
+        {% else %}
+        <p class="no-messages">No messages yet.</p>
+        {% endfor %}
+    </div>
+    <form method="POST" action="{{ url_for('messaging.send_message') }}" id="message-form" class="message-input">
+        <input type="hidden" name="recipient_id" value="{{ farmer._id }}">
+        <input type="hidden" name="product_id" value="{{ product._id }}">
+        <div class="form-group">
+            <label for="content"><i class="fas fa-comment"></i> Send Message</label>
+            <textarea id="content" name="content" rows="3" required></textarea>
+            <span class="form-error" id="content-error"></span>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-paper-plane"></i> Send <span class="loading-spinner"></span></button>
+    </form>
+</div>
+<style>
+    .product-details-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .product-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .product-image {
+        height: 250px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .zoom-image {
+        transition: transform 0.5s ease;
+    }
+
+    .product-details-grid:hover .zoom-image {
+        transform: scale(1.1);
+    }
+
+    .no-image {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .product-info dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .product-info dt {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .product-info dd {
+        margin: 0;
+    }
+
+    .message-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid var(--text-secondary);
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+    }
+
+    .message {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .message-content {
+        padding: 10px;
+    }
+
+    .message-time {
+        opacity: 0;
+        transition: opacity var(--transition-speed) ease;
+    }
+
+    .message:hover .message-time {
+        opacity: 1;
+    }
+
+    .no-messages {
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 15px 0;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .message-input {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    .message-input .form-group {
+        flex-grow: 1;
+    }
+
+    .message-input textarea {
+        resize: vertical;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: slideInRight 0.3s ease-in;
+    }
+
+    @media (max-width: 768px) {
+        .product-details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .message-input {
+            flex-direction: column;
+        }
+
+        .message-input button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const messageForm = document.querySelector('#message-form');
+        const contentInput = document.querySelector('#content');
+        const contentError = document.querySelector('#content-error');
+        const messageList = document.querySelector('#message-list');
+
+        // Real-time validation
+        contentInput.addEventListener('input', () => {
+            if (!contentInput.value.trim()) {
+                contentError.textContent = 'Message cannot be empty';
+                contentInput.setCustomValidity('Message required');
+            } else {
+                contentError.textContent = '';
+                contentInput.setCustomValidity('');
+            }
+        });
+
+        // Auto-scroll to bottom
+        messageList.scrollTop = messageList.scrollHeight;
+
+        // Form submission validation
+        messageForm.addEventListener('submit', (e) => {
+            if (!contentInput.value.trim()) {
+                contentError.textContent = 'Message cannot be empty';
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

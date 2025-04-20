@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Create Contract{% endblock %}
+{% block content %}
+<div class="contract-container">
+    <div class="contract-header">
+        <div class="letterhead">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Create Contract</h1>
+        </div>
+        <p class="contract-meta">Product: {{ product.name }} | Farmer: {{ farmer.name }}</p>
+    </div>
+    <div class="contract-section form-section" style="--i: 1">
+        <h2>Contract Details</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="quantity">Quantity ({{ product.unit }})</label>
+                <input type="number" id="quantity" name="quantity" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="total_price">Total Price ($)</label>
+                <input type="number" id="total_price" name="total_price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="delivery_date">Delivery Date</label>
+                <input type="date" id="delivery_date" name="delivery_date" required>
+            </div>
+            <div class="form-group">
+                <label for="payment_method">Payment Method</label>
+                <select id="payment_method" name="payment_method" required>
+                    <option value="Cash on Delivery">Cash on Delivery</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="terms">Terms</label>
+                <textarea id="terms" name="terms" required></textarea>
+            </div>
+            <div class="contract-actions">
+                <button type="submit" class="btn btn-pulse">Submit Contract</button>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .contract-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px;
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        animation: fadeInUp 0.5s ease-out;
+        position: relative;
+    }
+
+    .letterhead {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .logo {
+        max-width: 100px;
+        height: auto;
+    }
+
+    .contract-header {
+        text-align: center;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .contract-header h1 {
+        font-size: 2.2rem;
+        color: var(--primary-color);
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .contract-meta {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-family: Arial, sans-serif;
+    }
+
+    .contract-section {
+        margin-bottom: 40px;
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .contract-section h2 {
+        font-size: 1.6rem;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--primary-light);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+        font-family: Arial, sans-serif;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--text-secondary);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-family: Arial, sans-serif;
+        box-sizing: border-box;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .contract-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 30px;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.3s;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    @media (max-width: 768px) {
+        .contract-container {
+            padding: 20px;
+            margin: 20px;
+        }
+    }
+
+    @media print {
+        .contract-container {
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+            background-color: white;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .contract-header, .contract-section {
+            animation: none;
+        }
+
+        .contract-actions {
+            display: none;
+        }
+
+        .logo {
+            filter: grayscale(100%);
+        }
+
+        h1, h2, label {
+            color: black;
+        }
+
+        .contract-meta {
+            color: black;
+        }
+    }
+</style>
+{% endblock %}
