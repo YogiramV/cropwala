@@ -3,14 +3,17 @@
 {% block content %}
 <div class="card messages-card">
     <h2 class="card-title"><i class="fas fa-envelope"></i> Your Messages</h2>
-    <div class="conversation-list">
+    <div class="conversation-list" id="conversation-list">
         {% for conversation in conversations %}
-        <div class="conversation-card" style="--i: {{ loop.index0 }}">
+        <div class="conversation-card" style="--i: {{ loop.index0 }}" data-user-id="{{ conversation.user_id }}">
             <div class="avatar">{{ conversation.name[0] }}</div>
             <div class="conversation-details">
                 <p class="conversation-name"><strong>{{ conversation.name }}</strong> ({{ conversation.user_type | capitalize }})</p>
                 <p class="conversation-message">{{ conversation.last_message | truncate(50) }}</p>
                 <p class="conversation-time"><small>{{ conversation.timestamp.strftime('%Y-%m-%d %H:%M') }}</small></p>
+                {% if conversation.unread_count is defined and conversation.unread_count > 0 %}
+                <span class="unread-badge">{{ conversation.unread_count }} unread</span>
+                {% endif %}
             </div>
             <a href="{{ url_for('messaging.conversation', user_id=conversation.user_id) }}" class="btn btn-secondary btn-pulse"><i class="fas fa-comment"></i> View Conversation</a>
         </div>
@@ -108,8 +111,150 @@
 
         .btn-pulse {
             width: 100%;
-            text-align: center;
         }
     }
 </style>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const conversationList = document.querySelector('#conversation-list');
+    const currentUserId = "{{ current_user_id | default('') }}";
+    let lastUpdateTime = new Date().toISOString();
+    let ws = null;
+    let pollingInterval = null;
+    const seenConversations = new Set();
+
+    // Helper to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Helper to truncate text
+    function truncateText(text, length) {
+        if (text.length <= length) return text;
+        return text.substring(0, length) + '...';
+    }
+
+    // Helper to append or update conversation
+    function updateConversation(conversation, index) {
+        if (!conversation.user_id || seenConversations.has(conversation.user_id + ':' + conversation.timestamp)) {
+            return; // Skip duplicates or invalid conversations
+        }
+        seenConversations.add(conversation.user_id + ':' + conversation.timestamp);
+
+        const existingCard = conversationList.querySelector(`[data-user-id="${conversation.user_id}"]`);
+        const noMessages = conversationList.querySelector('.no-messages');
+        if (noMessages) {
+            noMessages.remove();
+        }
+
+        const card = existingCard || document.createElement('div');
+        card.className = 'conversation-card';
+        card.style.setProperty('--i', index);
+        card.dataset.userId = conversation.user_id;
+        card.innerHTML = `
+            <div class="avatar">${conversation.name[0]}</div>
+            <div class="conversation-details">
+                <p class="conversation-name"><strong>${conversation.name}</strong> (${conversation.user_type.charAt(0).toUpperCase() + conversation.user_type.slice(1)})</p>
+                <p class="conversation-message">${truncateText(conversation.last_message, 50)}</p>
+                <p class="conversation-time"><small>${formatDate(conversation.timestamp)}</small></p>
+                ${conversation.unread_count > 0 ? `<span class="unread-badge">${conversation.unread_count} unread</span>` : ''}
+            </div>
+            <a href="{{ url_for('messaging.conversation', user_id='') }}${conversation.user_id}" class="btn btn-secondary btn-pulse"><i class="fas fa-comment"></i> View Conversation</a>
+        `;
+
+        if (!existingCard) {
+            conversationList.appendChild(card);
+        } else {
+            conversationList.replaceChild(card, existingCard);
+        }
+
+        // Sort conversations by timestamp (descending)
+        const cards = Array.from(conversationList.querySelectorAll('.conversation-card'));
+        cards.sort((a, b) => {
+            const timeA = new Date(a.querySelector('.conversation-time small').textContent);
+            const timeB = new Date(b.querySelector('.conversation-time small').textContent);
+            return timeB - timeA;
+        });
+        cards.forEach((card, i) => {
+            card.style.setProperty('--i', i);
+            conversationList.appendChild(card);
+        });
+    }
+
+    // WebSocket setup with reconnection
+    function connectWebSocket() {
+        const wsUrl = `ws://${window.location.host}/ws/conversations`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const conversation = JSON.parse(event.data);
+                if (conversation.user_id) {
+                    updateConversation(conversation, conversationList.children.length);
+                    lastUpdateTime = conversation.timestamp;
+                }
+            } catch (error) {
+                console.error('WebSocket message error:', error);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected, attempting reconnect in 5s');
+            startPolling();
+            setTimeout(connectWebSocket, 5000); // Reconnect after 5s
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            ws.close();
+        };
+    }
+
+    // AJAX polling as fallback
+    function startPolling() {
+        if (!pollingInterval) {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/conversations?since=${encodeURIComponent(lastUpdateTime)}`);
+                    if (!response.ok) throw new Error('API fetch failed');
+                    const conversations = await response.json();
+                    conversations.forEach((conversation, index) => {
+                        if (new Date(conversation.timestamp) > new Date(lastUpdateTime)) {
+                            updateConversation(conversation, conversationList.children.length + index);
+                            lastUpdateTime = conversation.timestamp;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 5000); // Poll every 5 seconds
+        }
+    }
+
+    // Initialize WebSocket or polling
+    if ('WebSocket' in window && currentUserId) {
+        connectWebSocket();
+    } else {
+        console.warn('WebSocket unavailable or no user ID, using polling');
+        startPolling();
+    }
+});
+</script>
 {% endblock %}

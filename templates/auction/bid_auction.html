@@ -59,7 +59,7 @@
     {% if session.user_type == 'buyer' and auction.status == 'active' and auction.end_date > now %}
     <form id="bid-form" method="POST" action="{{ url_for('auction.place_bid', auction_id=auction._id) }}" data-current-price="{{ auction.current_price }}" data-min-increment="{{ auction.min_increment }}">
         <div class="form-group">
-            <label for="bid_amount">Your Bid ($)</label>
+            <label for="bid_amount">Your Bid (₹)</label>
             <input type="number" id="bid_amount" name="bid_amount" step="0.01" required>
             <span class="form-error" id="bid-error"></span>
         </div>
@@ -250,10 +250,10 @@
                     errorSpan.textContent = 'Please enter a valid number';
                     bidInput.setCustomValidity('Invalid bid');
                 } else if (bidValue <= currentPrice) {
-                    errorSpan.textContent = `Bid must be higher than $${currentPrice}`;
+                    errorSpan.textContent = `Bid must be higher than ₹${currentPrice}`;
                     bidInput.setCustomValidity('Bid too low');
                 } else if (bidValue < currentPrice + minIncrement) {
-                    errorSpan.textContent = `Bid must be at least $${minIncrement} higher than current price`;
+                    errorSpan.textContent = `Bid must be at least ₹{minIncrement} higher than current price`;
                     bidInput.setCustomValidity('Bid increment too small');
                 } else {
                     errorSpan.textContent = '';
