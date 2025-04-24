@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, jsonify, render_template, request, redirect, send_from_directory, url_for, flash, session
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta 
@@ -533,6 +533,18 @@ def location_recommendations():
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+
+# Harishwa - FAQ , About-US
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route("/FAQ")
+def FAQ():
+    return render_template('FAQ.html')
 
 
 if __name__ == '__main__':
