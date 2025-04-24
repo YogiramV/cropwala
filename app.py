@@ -17,12 +17,18 @@ import logging
 import uuid
 import os
 from dotenv import load_dotenv
+from email.message import EmailMessage
+import smtplib
 
 load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -483,6 +489,36 @@ def about():
 @app.route("/FAQ")
 def FAQ():
     return render_template('FAQ.html')
+
+
+# Sending Email
+
+@app.route('/email', methods=['POST'])
+def handle_email():
+    # Get the form data sent as JSON
+    item = request.get_json()
+
+    # Ensure the data contains all required fields
+    if not isinstance(item, dict) or not item.get('name') or not item.get('email') or not item.get('message'):
+        return jsonify({"status": "error", "message": "Please fill in all the fields (name, email, and message)."}), 400
+
+    try:
+        # Create the email message
+        msg = EmailMessage()
+        msg['Subject'] = f"New message from {item['name']}"  # Subject will indicate the sender's name
+        msg['From'] = item['email']
+        msg['To'] = EMAIL_RECEIVER  # Your email address
+        msg.set_content(f"Message from: {item['name']}\n\nEmail: {item['email']}\n\nMessage:\n{item['message']}")
+
+        # Send the email using Gmail SMTP server
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(EMAIL_RECEIVER, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+
+        return jsonify({"status": "success", "message": "Email sent successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == '__main__':
