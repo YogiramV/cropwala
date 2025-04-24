@@ -67,8 +67,18 @@
 
         <input type="submit" value="Submit">
     </form>
+
+    {% if prediction %}
+    <div class="prediction-results">
+        <h3>Predicted NPK Values:</h3>
+        <p><strong>Nitrogen:</strong> {{ prediction.nitrogen }}</p>
+        <p><strong>Phosphorus:</strong> {{ prediction.phosphorus }}</p>
+        <p><strong>Potassium:</strong> {{ prediction.potassium }}</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
+
 {% block styles %}
 <style>
     .form-container {
@@ -114,6 +124,18 @@
 
     input[type="submit"]:hover {
         background-color: var(--primary-light);
+    }
+
+    .prediction-results {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+
+    .prediction-results h3 {
+        margin-bottom: 10px;
     }
 </style>
 {% endblock %}

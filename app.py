@@ -556,29 +556,35 @@ def handle_email():
 
 @app.route('/npk', methods=['GET', 'POST'])
 def npk_prediction():
+    # Initialize prediction_result as None
+    prediction_result = None
+
     if request.method == 'POST':
-        # Get form data from the POST request
-        temperature = request.form.get('temperature')
-        moisture = request.form.get('moisture')
-        rainfall = request.form.get('rainfall')
-        ph = request.form.get('ph')
-        carbon = request.form.get('carbon')
+        # Get form data and cast to appropriate data types
+        temperature = float(request.form.get('temperature'))
+        moisture = float(request.form.get('moisture'))
+        rainfall = float(request.form.get('rainfall'))
+        ph = float(request.form.get('ph'))
+        carbon = float(request.form.get('carbon'))
         soil_type = request.form.get('soil')
         crop = request.form.get('crop')
 
+        # Create DataFrame from the input data
         input_data = pd.DataFrame(
             [[temperature, moisture, rainfall, ph, carbon, soil_type, crop]],
             columns=['Temperature', 'Moisture', 'Rainfall',
                      'PH', 'Carbon', 'Soil_type', 'Crop']
         )
 
-        soil_types = ['Loamy Soil', 'Peaty Soil',
-                      'Acidic Soil', 'Neutral Soil', 'Alkaline Soil']
-        crops = ['rice', 'wheat', 'Mung Bean', 'Tea', 'millet', 'maize', 'Lentil', 'Jute', 'Coffee', 'Cotton',
-                 'Ground Nut', 'Peas', 'Rubber', 'Sugarcane', 'Tobacco', 'Kidney Beans', 'Moth Beans', 'Coconut',
-                 'Black gram', 'Adzuki Beans', 'Pigeon Peas', 'Chickpea', 'banana', 'grapes', 'apple', 'mango',
-                 'muskmelon', 'orange', 'papaya', 'pomegranate', 'watermelon']
+        # Prepare dummy variables for soil type and crop
+        soil_types = ['Acidic Soil', 'Alkaline Soil',
+                      'Loamy Soil', 'Neutral Soil', 'Peaty Soil']
+        crops = ['Adzuki Beans', 'Black gram', 'Chickpea', 'Coconut', 'Coffee', 'Cotton', 'Ground Nut',
+                 'Jute', 'Kidney Beans', 'Lentil', 'Moth Beans', 'Mung Bean', 'Peas', 'Pigeon Peas', 'Rubber',
+                 'Sugarcane', 'Tea', 'Tobacco', 'apple', 'banana', 'grapes', 'maize', 'mango', 'millet',
+                 'muskmelon', 'orange', 'papaya', 'pomegranate', 'rice', 'watermelon', 'wheat']
 
+        # One-hot encode the soil type and crop columns
         for soil in soil_types:
             input_data[f'Soil_{soil}'] = (
                 input_data['Soil_type'] == soil).astype(int)
@@ -589,14 +595,25 @@ def npk_prediction():
 
         input_data = input_data.drop(columns=['Soil_type', 'Crop'], axis=1)
 
-        return redirect(url_for('model_input_confirmation'))
+        # Load the model
+        with open('datasets/models/best_rf_model.pkl', 'rb') as file:
+            model = pickle.load(file)
 
-    return render_template('/npk_prediction.html')
+        # Make the prediction
+        prediction = model.predict(input_data)
 
+        # Unpack the prediction values
+        nitrogen, phosphorus, potassium = prediction[0]
 
-@app.route('/model_input_confirmation')
-def model_input_confirmation():
-    return ("Placeholder")
+        # Prepare the result to be passed to the template
+        prediction_result = {
+            'nitrogen': round(nitrogen, 2),
+            'phosphorus': round(phosphorus, 2),
+            'potassium': round(potassium, 2)
+        }
+
+    # Render the template and pass the prediction result
+    return render_template('npk_prediction.html', prediction=prediction_result)
 
 
 if __name__ == '__main__':
