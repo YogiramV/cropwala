@@ -2,10 +2,296 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>About Us</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #fff;
+            font-family: "Montserrat", sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: #1B5E20;
+            color: #f1f1f1;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+        
+        main {
+            flex: 1;
+            padding: 0 20px;
+            margin-bottom: 60px;
+        }
+        
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .team-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .team-card {
+            background: #f1f1f1;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+        }
+        
+        .team-card .photo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .team-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .team-card h2 {
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+        
+        .team-card .about {
+            color: #555;
+        }
+        
+        /* Hover effects for desktop */
+        @media (min-width: 769px) {
+            .team-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            .team-card:hover .photo {
+                transform: scale(1.1);
+            }
+        }
+        
+        footer {
+            background-color: #1B5E20;
+            color: white;
+            padding: 40px 20px 20px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 2px;
+            background-color: #4CAF50;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-section ul li a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Media queries */
+        @media (max-width: 768px) {
+            .team-cards {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-section {
+                margin-bottom: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header {
+                padding: 30px 15px;
+            }
+            
+            .team-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .team-card {
+                padding: 20px 15px;
+                height: auto;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>about page</h1>
+    <header>
+        <h1>About Us</h1>
+    </header>
+    
+    <main>
+        <div class="team-container">
+            <div class="team-cards">
+                <div class="team-card">
+                    <div class="photo">
+                        <img src="/static/harishwa.jpg" alt="Harishwa">
+                    </div>
+                    <h2>Harishwa</h2>
+                    <p class="about">Front End Developer</p>
+                </div>
+                
+                <div class="team-card">
+                    <div class="photo">
+                        <img src="/static/gopi.jpg" alt="Gopi Krishna">
+                    </div>
+                    <h2>Gopi Krishna</h2>
+                    <p class="about">Front End Developer</p>
+                </div>
+                
+                <div class="team-card">
+                    <div class="photo">
+                        <img src="/static/yusuf.jpg" alt="Yusuf">
+                    </div>
+                    <h2>Yusuf</h2>
+                    <p class="about">Back-End Developer</p>
+                </div>
+                
+                <div class="team-card">
+                    <div class="photo">
+                        <img src="/static/mustafa.jpg" alt="Mustafa">
+                    </div>
+                    <h2>Mustafa</h2>
+                    <p class="about">Back-End Developer</p>
+                </div>
+                
+                <div class="team-card">
+                    <div class="photo">
+                        <img src="/api/placeholder/100/100" alt="Yogiram">
+                    </div>
+                    <h2>Yogiram</h2>
+                    <p class="about">Back-End Developer</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About AgriConnect</h3>
+                    <p>Connecting farmers and buyers through trusted contract farming solutions for sustainable agriculture.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="{{url_for('about')}}">About Us</a></li>
+                        <li><a href="#">Services</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="{{url_for('FAQ')}}">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Farming Tips</a></li>
+                        <li><a href="#">Market Trends</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                © Strawhats. All rights reserved.
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
