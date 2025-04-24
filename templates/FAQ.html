@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 
 {% block title %}FAQ{% endblock %}
@@ -219,3 +220,250 @@
     });
 </script>
 {% endblock %}
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .header h2 {
+            margin: 0;
+        }
+        
+        .header p {
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        .faq-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto 40px auto;
+        }
+        
+        .faq-item {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: calc(33.33% - 20px);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .faq-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .faq-question {
+            padding: 20px;
+            font-weight: bold;
+            color: #34495e;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        
+        .toggle-btn {
+            background-color: #2e7d32;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 15px auto;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            background-color: #1b5e20;
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            padding: 0 20px;
+            color: #555;
+            line-height: 1.6;
+            text-align: center;
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding: 0 20px 20px 20px;
+        }
+        
+        .faq-item.active .toggle-btn {
+            transform: rotate(45deg);
+        }
+        
+        /* Added this to make the last item properly centered in desktop view */
+        .last-item {
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 992px) {
+            .faq-item {
+                width: calc(50% - 20px);
+            }
+            
+            /* In medium view, last item needs to follow the same rules as other items */
+            .last-item {
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .faq-item {
+                width: 100%;
+            }
+            
+            .faq-container {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Find answers to common questions about our farming app</p>
+    </div>
+    
+    <div class="faq-container">
+        <!-- First row (3 cards) -->
+        <div class="faq-item">
+            <div class="faq-question">
+                What does this app do for me as a farmer?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                This app helps you choose the best crop to grow based on your soil, weather, and season. It also recommends the right fertilizers and updates you on new products, pest issues, and weather alerts — all in one place.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                How do I know which crop is best for my land?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                You can enter your soil details, current weather, and the time of year into the app. It uses smart technology to suggest the best crops based on this data and local farming trends.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                Is this app available in my local language?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                Yes, the app supports multiple languages, including Tamil. You can choose your preferred language when you first open the app.
+            </div>
+        </div>
+        
+        <!-- Second row (3 cards) -->
+        <div class="faq-item">
+            <div class="faq-question">
+                Can I trust the fertilizer suggestions given by the app?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                Yes, the app uses verified data from agriculture experts and government databases. It also includes ratings and reviews from other farmers to help you choose the most effective fertilizer.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                What if I don't understand how to use the app?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                The app includes a voice-based assistant (chatbot) that can help guide you through every step — you can ask questions and get answers in your language, either by speaking or typing.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                Does the app work without the internet?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                Some features like weather updates and crop suggestions need the internet. However, basic information and past recommendations can be accessed offline once loaded.
+            </div>
+        </div>
+        
+        <!-- Last card - now part of the regular container with a special class -->
+        <div class="faq-item last-item">
+            <div class="faq-question">
+                Is there any cost to use this app?
+                <div class="toggle-btn">+</div>
+            </div>
+            <div class="faq-answer">
+                No, the core features like crop suggestion, fertilizer info, and weather alerts are completely free to use. Additional marketplace or expert consultation features may have optional costs in the future.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                const isActive = item.classList.contains('active');
+                
+                // Close all items
+                document.querySelectorAll('.faq-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+                
+                // If it wasn't active before, make it active now
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>   
+>>>>>>> e030ce0

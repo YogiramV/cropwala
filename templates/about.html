@@ -1,11 +1,197 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us</title>
-</head>
-<body>
-    <h1>about page</h1>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    header {
+        background: #1B5E20;
+        color: #f1f1f1;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        width: 100%;
+    }
+
+    main {
+        flex: 1;
+        padding: 0 20px;
+        margin-bottom: 60px;
+    }
+
+    .team-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .team-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 20px;
+        margin-bottom: 60px;
+    }
+
+    .team-card {
+        background: #f1f1f1;
+        border-radius: 20px;
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 150px;
+    }
+
+    .team-card .photo {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .team-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .team-card h2 {
+        margin-bottom: 5px;
+        font-size: 1.2rem;
+    }
+
+    .team-card .about {
+        color: #555;
+    }
+
+    @media (min-width: 769px) {
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-card:hover .photo {
+            transform: scale(1.1);
+        }
+
+        h2 {
+            margin-top: 100px;
+            transition: 0.5s;
+        }
+
+        .team-card p {
+            transition: 0.5s;
+        }
+
+        .team-card:hover h2 {
+            transform: translateY(-80px);
+        }
+
+        .team-card:hover {
+            height: 250px;
+        }
+
+        .team-card:hover p {
+            transform: translateY(-80px);
+        }
+
+        .team-card img {
+            transition: 0.5s;
+        }
+
+        .team-card:hover img {
+            transform: scale(1.5);
+            width: 80%;
+        }
+
+        .team-card:hover .photo {
+            width: 120px;
+            height: 120px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .team-cards {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+    }
+
+    @media (max-width: 480px) {
+        header {
+            padding: 30px 15px;
+        }
+
+        .team-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .team-card {
+            padding: 20px 15px;
+            height: auto;
+        }
+    }
+
+    .h1{
+        text-align: center;
+        margin-bottom: 50px;
+        color: #1B5E20;
+    }
+</style>
+
+
+
+<main>
+    <h1 class = "h1">About Us</h1>
+        <div class="team-cards">
+            <div class="team-card">
+                <div class="photo">
+                    <img src="/static/images/harishwa.jpg" alt="Harishwa">
+                </div>
+                <h2>Harishwa</h2>
+                <p class="about">Front End Developer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="photo">
+                    <img src="/static/images/gopi.jpg" alt="Gopi Krishna">
+                </div>
+                <h2>Gopi Krishna</h2>
+                <p class="about">Front End Developer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="photo">
+                    <img src="/static/images/yusuf.jpg" alt="Yusuf">
+                </div>
+                <h2>Yusuf</h2>
+                <p class="about">Back-End Developer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="photo">
+                    <img src="/static/images/mustafa.jpg" alt="Mustafa">
+                </div>
+                <h2>Mustafa</h2>
+                <p class="about">Back-End Developer</p>
+            </div>
+
+            <div class="team-card" id="yogiram">
+                <div class="photo">
+                    <img src="/static/images/yogiram.jpg" alt="Yogiram">
+                </div>
+                <h2>Yogiram</h2>
+                <p class="about">Back-End Developer</p>
+            </div>
+        </div>
+</main>
+{% endblock %}
