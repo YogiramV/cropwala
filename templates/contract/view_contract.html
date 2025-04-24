@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+{% block title %}Contract Details{% endblock %}
+{% block content %}
+<div class="contract-container">
+    <div class="contract-header">
+        <div class="letterhead">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Contract Agreement</h1>
+        </div>
+        <p class="contract-meta">Contract ID: {{ contract._id }} | Date: {{ current_date.strftime('%Y-%m-%d') }}</p>
+    </div>
+    <div class="contract-section parties" style="--i: 1">
+        <h2>Parties</h2>
+        <div class="party-details">
+            <div class="party">
+                <h3>Seller (Farmer)</h3>
+                <dl>
+                    <dt>Name</dt>
+                    <dd>{{ farmer.name }}</dd>
+                    <dt>Address</dt>
+                    <dd>{{ farmer.location }}</dd>
+                    <dt>Phone</dt>
+                    <dd>{{ farmer.phone }}</dd>
+                    <dt>Email</dt>
+                    <dd>{{ farmer.email }}</dd>
+                </dl>
+            </div>
+            <div class="party">
+                <h3>Buyer</h3>
+                <dl>
+                    <dt>Name</dt>
+                    <dd>{{ buyer.name }}</dd>
+                    <dt>Company</dt>
+                    <dd>{{ buyer.company }}</dd>
+                    <dt>Address</dt>
+                    <dd>{{ buyer.location }}</dd>
+                    <dt>Phone</dt>
+                    <dd>{{ buyer.phone }}</dd>
+                    <dt>Email</dt>
+                    <dd>{{ buyer.email }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="contract-section terms" style="--i: 2">
+        <h2>Terms of Agreement</h2>
+        <div class="term-item">
+            <h3>1. Product Details</h3>
+            <dl>
+                <dt>Product</dt>
+                <dd>{{ product.name }}</dd>
+                <dt>Description</dt>
+                <dd>{{ product.description }}</dd>
+            </dl>
+        </div>
+        <div class="term-item">
+            <h3>2. Quantity</h3>
+            <p>{{ contract.quantity }} {{ product.unit }}</p>
+        </div>
+        <div class="term-item">
+            <h3>3. Total Price</h3>
+            <p>₹{{ contract.total_price }}</p>
+        </div>
+        <div class="term-item">
+            <h3>4. Delivery</h3>
+            <dl>
+                <dt>Delivery Date</dt>
+                <dd>
+
+                </dd>
+                <dt>Location</dt>
+                <dd>{{ buyer.location }}</dd>
+            </dl>
+        </div>
+        <div class="term-item">
+            <h3>5. Payment</h3>
+            <dl>
+                <dt>Method</dt>
+                <dd>{{ contract.payment_method }}</dd>
+                <dt>Terms</dt>
+                <dd>Payment due within 30 days of delivery.</dd>
+            </dl>
+        </div>
+        <div class="term-item">
+            <h3>6. Additional Terms</h3>
+            <p>{{ contract.terms | default('N/A') }}</p>
+        </div>
+        <div class="term-item">
+            <h3>7. Status</h3>
+            <p>
+                <span class="status-badge {{ contract.status | lower }}" title="Status: {{ contract.status | capitalize }}">{{ contract.status | capitalize }}</span>
+            </p>
+        </div>
+    </div>
+    <div class="contract-section signatures" style="--i: 3">
+        <h2>Signatures</h2>
+        <div class="signature">
+            <p><strong>Seller:</strong> __________________________</p>
+            <p><strong>Date:</strong> __________________________</p>
+        </div>
+        <div class="signature">
+            <p><strong>Buyer:</strong> __________________________</p>
+            <p><strong>Date:</strong> __________________________</p>
+        </div>
+    </div>
+    <div class="contract-actions" style="--i: 4">
+        {% if session.user_type == 'farmer' and contract.status == 'pending' and contract.farmer_id == session.user_id %}
+        <button type="button" class="btn btn-pulse approve-btn" data-action="approve"><i class="fas fa-check"></i> Approve Contract</button>
+        {% endif %}
+        <a href="{{ url_for('download_contract', contract_id=contract._id) }}" class="btn btn-secondary btn-pulse" title="Download as PDF"><i class="fas fa-download"></i> Download Contract</a>
+    </div>
+    <footer class="contract-footer">
+        <p>Contract ID: {{ contract._id }}</p>
+    </footer>
+</div>
+<div class="modal" id="confirm-modal">
+    <div class="modal-content">
+        <h3>Confirm Approval</h3>
+        <p>Are you sure you want to approve this contract?</p>
+        <div class="modal-actions">
+            <button class="btn btn-pulse" id="confirm-approve"><i class="fas fa-check"></i> Yes</button>
+            <button class="btn btn-secondary btn-pulse" id="cancel-approve"><i class="fas fa-times"></i> No</button>
+        </div>
+    </div>
+</div>
+<style>
+    .contract-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px;
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        animation: fadeInUp 0.5s ease-out;
+        position: relative;
+    }
+
+    .letterhead {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .logo {
+        max-width: 100px;
+        height: auto;
+    }
+
+    .contract-header {
+        text-align: center;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .contract-header h1 {
+        font-size: 2.2rem;
+        color: var(--primary-color);
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .contract-meta {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-family: Arial, sans-serif;
+    }
+
+    .contract-section {
+        margin-bottom: 40px;
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .contract-section h2 {
+        font-size: 1.6rem;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--primary-light);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .party-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .party h3 {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .party dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+    }
+
+    .party dt {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .party dd {
+        margin: 0;
+    }
+
+    .term-item {
+        margin-bottom: 25px;
+    }
+
+    .term-item h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .term-item p, .term-item dl {
+        margin-bottom: 10px;
+    }
+
+    .term-item dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+    }
+
+    .term-item dt {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .term-item dd {
+        margin: 0;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-badge.pending {
+        background-color: var(--warning-color);
+        color: white;
+    }
+
+    .status-badge.accepted {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .status-badge.rejected {
+        background-color: var(--error-color);
+        color: white;
+    }
+
+    .status-timer {
+        margin-left: 10px;
+        font-weight: bold;
+        color: var(--primary-color);
+        animation: pulse 2s infinite;
+    }
+
+    .status-timer.warning {
+        color: var(--warning-color);
+        animation: shake 0.5s infinite;
+    }
+
+    .status-timer.expired {
+        color: var(--error-color);
+        animation: shake 0.3s infinite;
+    }
+
+    .signatures {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        border-top: 1px solid var(--text-secondary);
+        padding-top: 30px;
+        page-break-inside: avoid;
+    }
+
+    .signature p {
+        margin-bottom: 15px;
+        font-family: Arial, sans-serif;
+    }
+
+    .signature p strong {
+        display: inline-block;
+        width: 80px;
+    }
+
+    .signature p::after {
+        content: '';
+        display: inline-block;
+        width: 200px;
+        border-bottom: 1px solid black;
+        vertical-align: middle;
+        margin-left: 10px;
+    }
+
+    .contract-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 30px;
+        animation: fadeInUp 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .contract-footer {
+        position: running(footer);
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 20px;
+        border-top: 1px solid var(--text-secondary);
+        padding-top: 10px;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: var(--bg-card);
+        padding: 20px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        max-width: 400px;
+        text-align: center;
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .party-details, .signatures {
+            grid-template-columns: 1fr;
+        }
+
+        .contract-container {
+            padding: 20px;
+            margin: 20px;
+        }
+    }
+
+    @media print {
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        .contract-container {
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+            background-color: white;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .contract-header, .contract-section, .contract-footer {
+            animation: none;
+        }
+
+        .contract-actions, .modal, .status-timer {
+            display: none;
+        }
+
+        .contract-footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .page-number::after {
+            content: counter(page);
+        }
+
+        .contract-section {
+            page-break-inside: avoid;
+        }
+
+        .signatures {
+            page-break-before: auto;
+        }
+
+        .logo {
+            filter: grayscale(100%);
+        }
+
+        h1, h2, h3 {
+            color: black;
+        }
+
+        p, dd {
+            color: black;
+        }
+
+        .contract-meta {
+            color: black;
+        }
+
+        .status-badge {
+            border: 1px solid black;
+            background-color: white;
+            color: black;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Real-time contract status update
+        const deliveryDateElement = document.querySelector('.delivery-date');
+        const statusTimer = document.querySelector('#status-timer');
+        const approveBtn = document.querySelector('.approve-btn');
+        const modal = document.querySelector('#confirm-modal');
+        const confirmApprove = document.querySelector('#confirm-approve');
+        const cancelApprove = document.querySelector('#cancel-approve');
+
+        // Update contract status based on delivery date
+        if (deliveryDateElement) {
+            const deliveryDate = new Date(deliveryDateElement.dataset.date);
+            function updateStatus() {
+                const now = new Date(); // Define `now` locally
+                const timeLeft = deliveryDate - now;
+                if (timeLeft <= 0) {
+                    statusTimer.textContent = 'Expired';
+                    statusTimer.classList.add('expired');
+                    if (approveBtn) {
+                        approveBtn.disabled = true;
+                        approveBtn.classList.add('disabled');
+                    }
+                } else if (timeLeft < 24 * 60 * 60 * 1000) {
+                    statusTimer.textContent = 'Expiring Soon';
+                    statusTimer.classList.add('warning');
+                } else {
+                    statusTimer.textContent = 'Active';
+                }
+            }
+            updateStatus();
+            setInterval(updateStatus, 60000); // Update every minute
+        }
+
+        // Modal for approve action
+        if (approveBtn) {
+            approveBtn.addEventListener('click', () => {
+                modal.style.display = 'flex';
+            });
+
+            confirmApprove.addEventListener('click', () => {
+                window.location.href = "{{ url_for('approve_contract', contract_id=contract._id) }}";
+            });
+
+            cancelApprove.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}
+

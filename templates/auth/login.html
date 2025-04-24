@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<!-- Include Tailwind CSS and Font Awesome -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+    <h2 class="text-2xl font-bold text-center mb-6"><i class="fas fa-sign-in-alt mr-2"></i>Login</h2>
+    <form method="POST" id="login-form" class="space-y-6">
+        <!-- Email Field -->
+        <div>
+            <label for="email" class="flex items-center text-gray-700"><i class="fas fa-envelope mr-2"></i>Email</label>
+            <input type="email" id="email" name="email" required
+                   class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <span class="text-red-500 text-sm hidden" id="email-error"></span>
+        </div>
+        <!-- Password Field -->
+        <div>
+            <label for="password" class="flex items-center text-gray-700"><i class="fas fa-lock mr-2"></i>Password</label>
+            <input type="password" id="password" name="password" required
+                   class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+            <span class="text-red-500 text-sm hidden" id="password-error"></span>
+        </div>
+        <!-- User Type Field -->
+        <div>
+            <label for="user_type" class="flex items-center text-gray-700"><i class="fas fa-user-tag mr-2"></i>User Type</label>
+            <select id="user_type" name="user_type" required
+                    class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+                <option value="" disabled selected>Select user type</option>
+                <option value="farmer">Farmer</option>
+                <option value="buyer">Buyer</option>
+            </select>
+            <span class="text-red-500 text-sm hidden" id="user-type-error"></span>
+        </div>
+        <!-- Submit Button -->
+        <button type="submit"
+                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300 flex items-center justify-center">
+            <i class="fas fa-sign-in-alt mr-2"></i>Login
+            <span class="loading-spinner hidden ml-2 w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
+        </button>
+    </form>
+    <!-- Register Links -->
+    <p class="text-center mt-4 text-gray-600">
+        Don't have an account?
+        <a href="{{ url_for('auth.register_farmer') }}" class="text-blue-500 hover:underline">Register as Farmer</a> or
+        <a href="{{ url_for('auth.register_buyer') }}" class="text-blue-500 hover:underline">Register as Buyer</a>
+    </p>
+</div>
+
+<style>
+    /* Shake animation for invalid form */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    #login-form.invalid {
+        animation: shake 0.3s ease-in-out;
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const passwordInput = document.querySelector('#password');
+        console.log('passwordInput:', passwordInput);
+
+        // Form validation logic
+        const form = document.querySelector('#login-form');
+        const emailInput = document.querySelector('#email');
+        const userTypeInput = document.querySelector('#user_type');
+        const emailError = document.querySelector('#email-error');
+        const passwordError = document.querySelector('#password-error');
+        const userTypeError = document.querySelector('#user-type-error');
+        const spinner = document.querySelector('.loading-spinner');
+
+        // Real-time validation
+        emailInput.addEventListener('input', () => {
+            if (!emailInput.value.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+                emailError.textContent = 'Please enter a valid email';
+                emailError.classList.remove('hidden');
+                emailInput.setCustomValidity('Invalid email');
+            } else {
+                emailError.textContent = '';
+                emailError.classList.add('hidden');
+                emailInput.setCustomValidity('');
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                passwordError.classList.remove('hidden');
+                passwordInput.setCustomValidity('Password too short');
+            } else {
+                passwordError.textContent = '';
+                passwordError.classList.add('hidden');
+                passwordInput.setCustomValidity('');
+            }
+        });
+
+        userTypeInput.addEventListener('change', () => {
+            if (!userTypeInput.value) {
+                userTypeError.textContent = 'Please select a user type';
+                userTypeError.classList.remove('hidden');
+                userTypeInput.setCustomValidity('User type required');
+            } else {
+                userTypeError.textContent = '';
+                userTypeError.classList.add('hidden');
+                userTypeInput.setCustomValidity('');
+            }
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+            spinner.classList.remove('hidden');
+
+            if (!emailInput.value.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+                emailError.textContent = 'Please enter a valid email';
+                emailError.classList.remove('hidden');
+                valid = false;
+            }
+
+            if (passwordInput.value.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                passwordError.classList.remove('hidden');
+                valid = false;
+            }
+
+            if (!userTypeInput.value) {
+                userTypeError.textContent = 'Please select a user type';
+                userTypeError.classList.remove('hidden');
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                form.classList.add('invalid');
+                spinner.classList.add('hidden');
+                setTimeout(() => form.classList.remove('invalid'), 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

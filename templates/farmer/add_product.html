@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block title %}Add Product{% endblock %}
+{% block content %}
+<div class="card add-product-card">
+    <h2 class="card-title"><i class="fas fa-plus-circle"></i> Add New Product</h2>
+    <form method="POST" enctype="multipart/form-data" id="add-product-form" class="form-grid">
+        <div class="form-group" style="--i: 1">
+            <label for="name"><i class="fas fa-seedling"></i> Product Name</label>
+            <input type="text" id="name" name="name" required>
+            <span class="form-error" id="name-error"></span>
+        </div>
+        <div class="form-group" style="--i: 2">
+            <label for="category"><i class="fas fa-tags"></i> Category</label>
+            <div class="select-wrapper">
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option value="grains">Grains</option>
+                    <option value="vegetables">Vegetables</option>
+                    <option value="fruits">Fruits</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <span class="form-error" id="category-error"></span>
+        </div>
+        <div class="form-group full-width" style="--i: 3">
+            <label for="description"><i class="fas fa-file-alt"></i> Description</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+            <span class="form-error" id="description-error"></span>
+        </div>
+        <div class="form-group" style="--i: 4">
+            <label for="quantity"><i class="fas fa-balance-scale"></i> Quantity</label>
+            <input type="number" id="quantity" name="quantity" step="0.01" min="0" required>
+            <span class="form-error" id="quantity-error"></span>
+        </div>
+        <div class="form-group" style="--i: 5">
+            <label for="unit"><i class="fas fa-ruler"></i> Unit</label>
+            <div class="select-wrapper">
+                <select id="unit" name="unit" required>
+                    <option value="" disabled selected>Select unit</option>
+                    <option value="kg">Kilograms</option>
+                    <option value="tons">Tons</option>
+                    <option value="liters">Liters</option>
+                </select>
+            </div>
+            <span class="form-error" id="unit-error"></span>
+        </div>
+        <div class="form-group" style="--i: 6">
+            <label for="price"><i class="fas fa-dollar-sign"></i> Price (₹)</label>
+            <input type="number" id="price" name="price" step="0.01" min="0" required>
+            <span class="form-error" id="price-error"></span>
+        </div>
+        <div class="form-group" style="--i: 7">
+            <label for="harvest_date"><i class="fas fa-calendar-alt"></i> Harvest Date</label>
+            <input type="date" id="harvest_date" name="harvest_date" required>
+            <span class="form-error" id="harvest-date-error"></span>
+        </div>
+        <div class="form-group full-width" style="--i: 8">
+            <label for="image"><i class="fas fa-image"></i> Product Image</label>
+            <input type="file" id="image" name="image" accept="image/*">
+            <div class="image-preview" id="image-preview"></div>
+            <span class="form-error" id="image-error"></span>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-plus"></i> Add Product <span class="loading-spinner"></span></button>
+    </form>
+</div>
+<style>
+    .add-product-card {
+        max-width: 600px;
+        margin: 40px auto;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    .select-wrapper {
+        position: relative;
+    }
+
+    .select-wrapper select {
+        width: 100%;
+        padding-right: 30px;
+        appearance: none;
+    }
+
+    .select-wrapper::after {
+        content: '▼';
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    .image-preview {
+        margin-top: 10px;
+        max-height: 200px;
+        overflow: hidden;
+        border-radius: var(--border-radius);
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        border-radius: var(--border-radius);
+    }
+
+    .btn-pulse {
+        grid-column: 1 / -1;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: slideInRight 0.3s ease-in;
+    }
+
+    #add-product-form.invalid {
+        animation: shake 0.3s ease-in-out;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .add-product-card {
+            margin: 20px;
+        }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#add-product-form');
+        const nameInput = document.querySelector('#name');
+        const descriptionInput = document.querySelector('#description');
+        const categoryInput = document.querySelector('#category');
+        const quantityInput = document.querySelector('#quantity');
+        const unitInput = document.querySelector('#unit');
+        const priceInput = document.querySelector('#price');
+        const harvestDateInput = document.querySelector('#harvest_date');
+        const imageInput = document.querySelector('#image');
+        const nameError = document.querySelector('#name-error');
+        const descriptionError = document.querySelector('#description-error');
+        const categoryError = document.querySelector('#category-error');
+        const quantityError = document.querySelector('#quantity-error');
+        const unitError = document.querySelector('#unit-error');
+        const priceError = document.querySelector('#price-error');
+        const harvestDateError = document.querySelector('#harvest-date-error');
+        const imageError = document.querySelector('#image-error');
+        const imagePreview = document.querySelector('#image-preview');
+
+        // Image preview
+        imageInput.addEventListener('change', () => {
+            imagePreview.innerHTML = '';
+            const file = imageInput.files[0];
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    imageError.textContent = 'Please upload an image file';
+                    imageInput.setCustomValidity('Invalid file');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+                imageError.textContent = '';
+                imageInput.setCustomValidity('');
+            }
+        });
+
+        // Real-time validation
+        nameInput.addEventListener('input', () => {
+            if (!nameInput.value.trim()) {
+                nameError.textContent = 'Product name is required';
+                nameInput.setCustomValidity('Name required');
+            } else {
+                nameError.textContent = '';
+                nameInput.setCustomValidity('');
+            }
+        });
+
+        descriptionInput.addEventListener('input', () => {
+            if (!descriptionInput.value.trim()) {
+                descriptionError.textContent = 'Description is required';
+                descriptionInput.setCustomValidity('Description required');
+            } else {
+                descriptionError.textContent = '';
+                descriptionInput.setCustomValidity('');
+            }
+        });
+
+        categoryInput.addEventListener('change', () => {
+            if (!categoryInput.value) {
+                categoryError.textContent = 'Category is required';
+                categoryInput.setCustomValidity('Category required');
+            } else {
+                categoryError.textContent = '';
+                categoryInput.setCustomValidity('');
+            }
+        });
+
+        quantityInput.addEventListener('input', () => {
+            const value = parseFloat(quantityInput.value);
+            if (isNaN(value) || value <= 0) {
+                quantityError.textContent = 'Quantity must be positive';
+                quantityInput.setCustomValidity('Invalid quantity');
+            } else {
+                quantityError.textContent = '';
+                quantityInput.setCustomValidity('');
+            }
+        });
+
+        unitInput.addEventListener('change', () => {
+            if (!unitInput.value) {
+                unitError.textContent = 'Unit is required';
+                unitInput.setCustomValidity('Unit required');
+            } else {
+                unitError.textContent = '';
+                unitInput.setCustomValidity('');
+            }
+        });
+
+        priceInput.addEventListener('input', () => {
+            const value = parseFloat(priceInput.value);
+            if (isNaN(value) || value <= 0) {
+                priceError.textContent = 'Price must be positive';
+                priceInput.setCustomValidity('Invalid price');
+            } else {
+                priceError.textContent = '';
+                priceInput.setCustomValidity('');
+            }
+        });
+
+        harvestDateInput.addEventListener('input', () => {
+            const selectedDate = new Date(harvestDateInput.value);
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            if (!harvestDateInput.value || selectedDate < now) {
+                harvestDateError.textContent = 'Harvest date must be today or in the future';
+                harvestDateInput.setCustomValidity('Invalid date');
+            } else {
+                harvestDateError.textContent = '';
+                harvestDateInput.setCustomValidity('');
+            }
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+
+            if (!nameInput.value.trim()) {
+                nameError.textContent = 'Product name is required';
+                valid = false;
+            }
+
+            if (!descriptionInput.value.trim()) {
+                descriptionError.textContent = 'Description is required';
+                valid = false;
+            }
+
+            if (!categoryInput.value) {
+                categoryError.textContent = 'Category is required';
+                valid = false;
+            }
+
+            if (isNaN(parseFloat(quantityInput.value)) || parseFloat(quantityInput.value) <= 0) {
+                quantityError.textContent = 'Quantity must be positive';
+                valid = false;
+            }
+
+            if (!unitInput.value) {
+                unitError.textContent = 'Unit is required';
+                valid = false;
+            }
+
+            if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) <= 0) {
+                priceError.textContent = 'Price must be positive';
+                valid = false;
+            }
+
+            const selectedDate = new Date(harvestDateInput.value);
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            if (!harvestDateInput.value || selectedDate < now) {
+                harvestDateError.textContent = 'Harvest date must be today or in the future';
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                form.classList.add('invalid');
+                setTimeout(() => form.classList.remove('invalid'), 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

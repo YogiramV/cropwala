@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% block title %}Auction: {{ product.name }}{% endblock %}
+{% block content %}
+<div class="card auction-card">
+    <h2 class="card-title"><i class="fas fa-gavel"></i> Auction: {{ product.name }}</h2>
+    <div class="auction-details">
+        <div class="product-image">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="zoom-image">
+            {% else %}
+            <span class="no-image">No Image</span>
+            {% endif %}
+        </div>
+        <div class="auction-info">
+            <dl>
+                <dt>Description</dt>
+                <dd>{{ auction.description }}</dd>
+                <dt>Farmer</dt>
+                <dd>{{ farmer.name }}</dd>
+                <dt>Current Price</dt>
+                <dd>${{ auction.current_price }}</dd>
+                <dt>Minimum Increment</dt>
+                <dd>${{ auction.min_increment }}</dd>
+                <dt>Ends</dt>
+                <dd id="auction-end">{{ auction.end_date.strftime('%Y-%m-%d %H:%M') }}</dd>
+                <dt>Status</dt>
+                <dd>
+                    <span class="status-badge {{ auction.status }}">{{ auction.status | capitalize }}</span>
+                </dd>
+            </dl>
+            <p class="auction-timer" id="auction-timer"></p>
+        </div>
+    </div>
+    {% if auction.bids %}
+    <h3>Bids</h3>
+    <div class="bids-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Buyer</th>
+                    <th>Amount</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bid in auction.bids %}
+                <tr class="bid-row" style="--i: {{ loop.index0 }}">
+                    <td>{{ bid.buyer_name }}</td>
+                    <td>${{ bid.amount }}</td>
+                    <td>{{ bid.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="no-bids">No bids yet.</p>
+    {% endif %}
+    {% if session.user_type == 'buyer' and auction.status == 'active' and auction.end_date > now %}
+    <form id="bid-form" method="POST" action="{{ url_for('auction.place_bid', auction_id=auction._id) }}" data-current-price="{{ auction.current_price }}" data-min-increment="{{ auction.min_increment }}">
+        <div class="form-group">
+            <label for="bid_amount">Your Bid (₹)</label>
+            <input type="number" id="bid_amount" name="bid_amount" step="0.01" required>
+            <span class="form-error" id="bid-error"></span>
+        </div>
+        <button type="submit" class="btn btn-pulse"><i class="fas fa-hand-holding-usd"></i> Place Bid <span class="loading-spinner"></span></button>
+    </form>
+    {% endif %}
+    {% if auction.status == 'completed' and auction.contract_id %}
+    <a href="{{ url_for('view_contract', contract_id=auction.contract_id) }}" class="btn btn-pulse btn-secondary"><i class="fas fa-file-contract"></i> View Contract</a>
+    {% endif %}
+</div>
+<style>
+    .auction-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .auction-details {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .product-image {
+        height: 250px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+
+    .zoom-image {
+        transition: transform 0.5s ease;
+    }
+
+    .product-image:hover .zoom-image {
+        transform: scale(1.1);
+    }
+
+    .no-image {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .auction-info dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .auction-info dt {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .auction-info dd {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-badge.active {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .status-badge.completed {
+        background-color: var(--info-color);
+        color: white;
+    }
+
+    .auction-timer {
+        font-weight: bold;
+        color: var(--primary-color);
+        margin: 10px 0;
+        animation: pulse 2s infinite;
+    }
+
+    .auction-timer.warning {
+        color: var(--warning-color);
+        animation: shake 0.5s infinite;
+    }
+
+    .auction-timer.critical {
+        color: var(--error-color);
+        animation: shake 0.3s infinite;
+    }
+
+    .bids-table {
+        overflow-x: auto;
+        margin-bottom: 20px;
+    }
+
+    .bids-table table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: var(--bg-card);
+    }
+
+    .bids-table th,
+    .bids-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .bids-table th {
+        background-color: var(--primary-light);
+        color: white;
+        font-weight: 600;
+    }
+
+    .bids-table tr:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .bids-table tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .bid-row {
+        animation: slideInRight 0.5s ease-out;
+        animation-delay: calc(0.1s * var(--i));
+    }
+
+    .no-bids {
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 15px 0;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .btn-pulse {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pulse:hover {
+        animation: pulse 1s infinite;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @media (max-width: 768px) {
+        .auction-details {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image {
+            height: 200px;
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Bid form validation
+        const bidForm = document.querySelector('#bid-form');
+        if (bidForm) {
+            const bidInput = bidForm.querySelector('#bid_amount');
+            const errorSpan = document.querySelector('#bid-error');
+            const currentPrice = parseFloat(bidForm.dataset.currentPrice);
+            const minIncrement = parseFloat(bidForm.dataset.minIncrement);
+
+            bidInput.addEventListener('input', () => {
+                const bidValue = parseFloat(bidInput.value);
+                if (isNaN(bidValue)) {
+                    errorSpan.textContent = 'Please enter a valid number';
+                    bidInput.setCustomValidity('Invalid bid');
+                } else if (bidValue <= currentPrice) {
+                    errorSpan.textContent = `Bid must be higher than ₹${currentPrice}`;
+                    bidInput.setCustomValidity('Bid too low');
+                } else if (bidValue < currentPrice + minIncrement) {
+                    errorSpan.textContent = `Bid must be at least ₹{minIncrement} higher than current price`;
+                    bidInput.setCustomValidity('Bid increment too small');
+                } else {
+                    errorSpan.textContent = '';
+                    bidInput.setCustomValidity('');
+                }
+            });
+        }
+
+        // Countdown timer
+        const endDateStr = "{{ auction.end_date.strftime('%Y-%m-%d %H:%M:%S') }}";
+        const endDate = new Date(endDateStr);
+        const timerElement = document.querySelector('#auction-timer');
+
+        function updateTimer() {
+            const now = new Date();
+            const timeLeft = endDate - now;
+            if (timeLeft <= 0) {
+                timerElement.textContent = 'Auction Ended';
+                timerElement.classList.add('critical');
+                if (bidForm) bidForm.style.display = 'none';
+                return;
+            }
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            timerElement.textContent = `Time Left: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+            if (timeLeft < 600000) { // Less than 10 minutes
+                timerElement.classList.add('critical');
+            } else if (timeLeft < 3600000) { // Less than 1 hour
+                timerElement.classList.add('warning');
+            }
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+</script>
+{% endblock %}
