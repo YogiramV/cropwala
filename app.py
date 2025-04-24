@@ -66,55 +66,6 @@ if not os.path.exists(UPLOAD_FOLDER):
 # Store conversation history
 conversation_history = {}
 
-# Mock database of crop information
-crop_database = {
-    "tomatoes": {
-        "water_needs": "moderate",
-        "sunlight": "full sun",
-        "soil_ph": "6.0-6.8",
-        "spacing": "24-36 inches",
-        "common_pests": ["aphids", "hornworms", "whiteflies"],
-        "growing_season": "summer",
-        "days_to_maturity": "60-85 days"
-    },
-    "corn": {
-        "water_needs": "high",
-        "sunlight": "full sun",
-        "soil_ph": "5.8-7.0",
-        "spacing": "8-12 inches",
-        "common_pests": ["corn earworms", "cutworms", "aphids"],
-        "growing_season": "summer",
-        "days_to_maturity": "60-100 days"
-    },
-    "lettuce": {
-        "water_needs": "moderate",
-        "sunlight": "partial shade",
-        "soil_ph": "6.0-7.0",
-        "spacing": "8-12 inches",
-        "common_pests": ["aphids", "slugs", "snails"],
-        "growing_season": "spring/fall",
-        "days_to_maturity": "45-55 days"
-    },
-    "carrots": {
-        "water_needs": "moderate",
-        "sunlight": "full sun",
-        "soil_ph": "6.0-6.8",
-        "spacing": "2-3 inches",
-        "common_pests": ["carrot flies", "nematodes"],
-        "growing_season": "spring/fall",
-        "days_to_maturity": "70-80 days"
-    }
-}
-
-# Mock weather data
-weather_data = {
-    "New York": {"temp": "18°C", "conditions": "Partly Cloudy", "humidity": "65%"},
-    "California": {"temp": "24°C", "conditions": "Sunny", "humidity": "45%"},
-    "Texas": {"temp": "30°C", "conditions": "Clear", "humidity": "50%"},
-    "Florida": {"temp": "26°C", "conditions": "Thunderstorms", "humidity": "80%"},
-    "default": {"temp": "22°C", "conditions": "Sunny", "humidity": "60%"}
-}
-
 # Helper function to check allowed file extensions
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -254,10 +205,14 @@ def notifications():
     return render_template('notifications.html', notifications=notifications, current_date=datetime.now())
 
 # Chatbot routes and its subroutes
+
+#
+
 @app.route('/chatbot')
 def chatbot():
     return render_template("chatbot.html")
 
+# Route for handling chat messages
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -281,34 +236,15 @@ def chat():
             "content": user_message
         })
 
-        # Prepare context with location and crop data
-        context = f"User location: {user_location}\n"
-        if user_location in weather_data:
-            weather = weather_data[user_location]
-            context += f"Current weather: {weather['temp']}, {weather['conditions']}, Humidity: {weather['humidity']}\n"
-        else:
-            weather = weather_data["default"]
-            context += f"Default weather: {weather['temp']}, {weather['conditions']}, Humidity: {weather['humidity']}\n"
-
-        # Check if message relates to a specific crop
-        for crop in crop_database:
-            if crop.lower() in user_message.lower():
-                crop_info = crop_database[crop]
-                context += f"Crop info for {crop}:\n"
-                context += f"- Water needs: {crop_info['water_needs']}\n"
-                context += f"- Sunlight: {crop_info['sunlight']}\n"
-                context += f"- Soil pH: {crop_info['soil_ph']}\n"
-                context += f"- Spacing: {crop_info['spacing']}\n"
-                context += f"- Common pests: {', '.join(crop_info['common_pests'])}\n"
-                context += f"- Growing season: {crop_info['growing_season']}\n"
-                context += f"- Days to maturity: {crop_info['days_to_maturity']}\n"
-
-        # Prepare the prompt with context
-        full_prompt = context + "\nUser message: " + user_message
+        # Prepare context with location
+        context = f"User location: {user_location}\nUser language: {language}\n"
+        
+        # Create prompt for Gemini API
+        full_prompt = f"{system_prompt}\n\n{context}\nUser message: {user_message}"
 
         # Generate response using Gemini API
         try:
-            response = genai_client.models.generate_content(full_prompt)
+            response = model.generate_content(full_prompt)
             bot_response = response.text.strip()
         except Exception as e:
             logger.error(f"Gemini API error: {str(e)}")
@@ -324,7 +260,7 @@ def chat():
         if len(conversation_history[session_id]) > 10:
             conversation_history[session_id] = conversation_history[session_id][-10:]
 
-        # Generate suggestion chips
+        # Generate suggestion chips using Gemini
         suggestions = generate_suggestions(user_message)
 
         return jsonify({
@@ -341,36 +277,42 @@ def chat():
             "timestamp": datetime.now().isoformat()
         }), 500
 
-# Helper function to generate suggestion chips
+# Helper function to generate suggestion chips using Gemini instead of hardcoded values
 def generate_suggestions(user_message):
-    all_suggestions = [
-        "Best time to plant potatoes",
-        "Natural pest control methods",
-        "How to improve soil drainage",
-        "Signs of overwatering",
-        "Companion planting guide",
-        "How to make compost",
-        "Organic fertilizer options",
-        "Crop rotation benefits",
-        "When to harvest onions",
-        "How to prevent tomato blight"
-    ]
-    
-    # Filter suggestions based on message content
-    related_suggestions = []
-    user_message = user_message.lower()
-    for suggestion in all_suggestions:
-        if any(keyword in user_message for keyword in suggestion.lower().split()):
-            related_suggestions.append(suggestion)
-    
-    # If no related suggestions, pick random ones
-    if not related_suggestions:
-        related_suggestions = random.sample(all_suggestions, min(3, len(all_suggestions)))
-    else:
-        # Limit to 3 suggestions
-        related_suggestions = related_suggestions[:3]
-    
-    return related_suggestions
+    try:
+        suggestion_prompt = f"""
+        Based on this user message about farming: "{user_message}"
+        Generate exactly 3 follow-up question suggestions related to farming, agriculture, or gardening.
+        Each suggestion should be brief (under 7 words if possible) and practical.
+        Format your response as a plain list of 3 items, one per line, no bullets or numbers.
+        If the user message doesn't contain enough context, provide general farming-related suggestions.
+        """
+        
+        response = model.generate_content(suggestion_prompt)
+        suggestions_text = response.text.strip()
+        
+        # Split the response into individual suggestions
+        suggestions = [s.strip() for s in suggestions_text.split('\n') if s.strip()]
+        
+        # Ensure we have 3 suggestions at most
+        suggestions = suggestions[:3]
+        
+        # If somehow we got no suggestions, use some defaults
+        if not suggestions:
+            suggestions = [
+                "Best planting times",
+                "Natural pest control",
+                "Soil health tips"
+            ]
+            
+        return suggestions
+    except Exception as e:
+        logger.error(f"Error generating suggestions: {str(e)}")
+        return [
+            "Best planting times",
+            "Natural pest control",
+            "Soil health tips"
+        ]
 
 # Route for handling image uploads and analysis
 @app.route("/analyze_image", methods=["POST"])
@@ -474,22 +416,20 @@ def location_recommendations():
 
         logger.info(f"Location recommendation request from {session_id} for {user_location}")
 
-        # Prepare context with weather data
-        if user_location in weather_data:
-            weather = weather_data[user_location]
-        else:
-            weather = weather_data["default"]
-            user_location = "default"
-
         prompt = f"""
         Provide farming recommendations based on the following:
         - Location: {user_location}
-        - Weather: {weather['temp']}, {weather['conditions']}, Humidity: {weather['humidity']}
+        
+        Consider typical weather patterns, soil conditions, and agricultural practices for this location.
+        
         Suggest:
-        - Suitable crops for the current season
-        - Weather-specific farming tips
-        - Potential pest or disease concerns
+        - Suitable crops for the current season (it's currently {datetime.now().strftime('%B')}, so focus on seasonal crops)
+        - Weather-specific farming tips relevant to this location
+        - Potential pest or disease concerns for this region
+        - Local agricultural best practices
+        
         Respond in a friendly tone with the 👨‍🌾 emoji.
+        Use {language} language for your response.
         """
 
         try:
@@ -519,7 +459,7 @@ def location_recommendations():
             logger.error(f"Gemini API error in location recommendations: {str(e)}")
             return jsonify({
                 "response": "👨‍🌾 Sorry, I couldn't generate recommendations. Please try again.",
-                "timestamp": datetime.now()
+                "timestamp": datetime.now().isoformat()
             }), 500
 
     except Exception as e:
@@ -533,9 +473,7 @@ def location_recommendations():
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-
-
+    
 # Harishwa - FAQ , About-US
 
 @app.route('/about')
