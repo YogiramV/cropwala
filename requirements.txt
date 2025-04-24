@@ -3,3 +3,4 @@ pymongo
 bcrypt
 werkzeug
 python-dotenv
+google.generativeai

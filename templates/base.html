@@ -998,7 +998,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    <a href="#" class="chatbot-button" id="chatbotButton">
+    <a href="{{ url_for('chatbot') }}"  class="chatbot-button" id="chatbotButton">
         <i class="fas fa-comment-dots"></i>
     </a>
 
@@ -1006,7 +1006,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>About AgriContract</h3>
+                    <h3>About AgriConnect</h3>
                     <p>Connecting farmers and buyers through trusted contract farming solutions for sustainable agriculture.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -1019,10 +1019,10 @@
                     <h3>Quick Links</h3>
                     <ul>
                         <li><a href="#">Home</a></li>
-                        <li><a href="#">About Us</a></li>
+                        <li><a href="{{url_for('about')}}">About Us</a></li>
                         <li><a href="#">Services</a></li>
                         <li><a href="#">Contact</a></li>
-                        <li><a href="#">FAQ</a></li>
+                        <li><a href="{{url_for('FAQ')}}">FAQ</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">

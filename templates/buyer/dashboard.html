@@ -47,7 +47,7 @@
                 <p>{{ product.description | truncate(100) }}</p>
                 <p class="product-meta">Farmer: {{ product.farmer_name }}</p>
                 <p class="product-meta">Quantity: {{ product.quantity }} {{ product.unit }}</p>
-                <p class="product-price">${{ product.price }}</p>
+                <p class="product-price">₹{{ product.price }}</p>
                 <a href="{{ url_for('buyer.product_details', product_id=product._id) }}" class="btn btn-pulse"><i class="fas fa-eye"></i> View Details</a>
             </div>
         </div>
@@ -65,7 +65,7 @@
         {% for auction in auctions %}
         <div class="auction-card" style="--i: {{ loop.index0 }}">
             <h4>{{ auction.description }}</h4>
-            <p class="auction-meta">Current Price: ${{ auction.current_price }}</p>
+            <p class="auction-meta">Current Price: ₹{{ auction.current_price }}</p>
             <p class="auction-meta">Ends: <span class="auction-end" data-end="{{ auction.end_date.strftime('%Y-%m-%d %H:%M:%S') }}">{{ auction.end_date.strftime('%Y-%m-%d %H:%M') }}</span></p>
             <p class="auction-timer" id="timer-{{ auction._id }}"></p>
             <a href="{{ url_for('auction.view_auction', auction_id=auction._id) }}" class="btn btn-pulse auction-btn" data-auction-id="{{ auction._id }}"><i class="fas fa-gavel"></i> View Auction</a>
