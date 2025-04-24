@@ -649,6 +649,36 @@
             font-size: 24px;
         }
 
+        .ML-button {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all var(--transition-speed) ease;
+            animation: pulse 2s infinite;
+        }
+
+        .ML-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            animation: none;
+        }
+
+        .Ml-button i {
+            font-size: 24px;
+        }
+
+
         footer {
             background-color: var(--primary-dark);
             color: white;
@@ -912,7 +942,7 @@
         <div class="container header-content">
             <div class="logo">
                 <a href="{{ url_for('auth.index') }}">
-                    <i class="fas fa-seedling"></i>AgriConnect
+                    <i class="fas fa-seedling"></i>CropWala
                 </a>
             </div>
             <button class="menu-toggle" id="menuToggle">
@@ -1003,11 +1033,16 @@
         <i class="fas fa-comment-dots"></i>
     </a>
 
+    <a href="#"  class="ML-button" id="MLButton">
+        <i class="fas fa-exclamation-circle"></i>
+    </a>
+
+
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>About AgriConnect</h3>
+                    <h3>About CropWala</h3>
                     <p>Connecting farmers and buyers through trusted contract farming solutions for sustainable agriculture.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -1055,7 +1090,7 @@
                 </div>
             </div>
             <div class="copyright">
-                © AgriConnect. All rights reserved.
+                © CropWala. All rights reserved.
             </div>
         </div>
     </footer>
