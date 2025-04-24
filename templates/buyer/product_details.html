@@ -40,7 +40,7 @@
         <p class="no-messages">No messages yet.</p>
         {% endfor %}
     </div>
-    <form method="POST" action="{{ url_for('messaging.send_message') }}" id="message-form" class="message-input">
+    <form id="message-form" class="message-input">
         <input type="hidden" name="recipient_id" value="{{ farmer._id }}">
         <input type="hidden" name="product_id" value="{{ product._id }}">
         <div class="form-group">
@@ -48,7 +48,7 @@
             <textarea id="content" name="content" rows="3" required></textarea>
             <span class="form-error" id="content-error"></span>
         </div>
-        <button type="submit" class="btn btn-pulse"><i class="fas fa-paper-plane"></i> Send <span class="loading-spinner"></span></button>
+        <button type="submit" class="btn btn-pulse">Send<span class="loading-spinner"></span></button>
     </form>
 </div>
 <style>
@@ -173,40 +173,194 @@
         }
 
         .message-input button {
-            width: 100%;
+            width: 50%;
+            border-radius: 6%;
         }
+    }
+    .message-input button {
+        width: 6%;
+        border-radius: 6%;
+        margin-bottom: 45px;
+        height: 40px;
     }
 </style>
 {% endblock %}
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const messageForm = document.querySelector('#message-form');
-        const contentInput = document.querySelector('#content');
-        const contentError = document.querySelector('#content-error');
-        const messageList = document.querySelector('#message-list');
+document.addEventListener('DOMContentLoaded', () => {
+    const messageForm = document.querySelector('#message-form');
+    const contentInput = document.querySelector('#content');
+    const contentError = document.querySelector('#content-error');
+    const messageList = document.querySelector('#message-list');
+    const productId = "{{ product._id }}";
+    const userId = "{{ session.user_id }}";
+    const recipientId = "{{ farmer._id }}";
+    let lastMessageTime = new Date().toISOString();
+    let ws = null;
+    let pollingInterval = null;
+    const seenMessages = new Set();
 
-        // Real-time validation
-        contentInput.addEventListener('input', () => {
-            if (!contentInput.value.trim()) {
-                contentError.textContent = 'Message cannot be empty';
-                contentInput.setCustomValidity('Message required');
-            } else {
-                contentError.textContent = '';
-                contentInput.setCustomValidity('');
-            }
+    // Helper to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
+    }
 
-        // Auto-scroll to bottom
+    // Helper to append a message
+    function appendMessage(message, index) {
+        if (!message.message_id || seenMessages.has(message.message_id)) {
+            return; // Skip duplicates or invalid messages
+        }
+        seenMessages.add(message.message_id);
+
+        const isSender = message.sender_id === userId;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
+        messageDiv.style.setProperty('--i', index);
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <p>${message.content}</p>
+                <p class="message-time"><small>${formatDate(message.created_at)}</small></p>
+            </div>
+        `;
+        const noMessages = messageList.querySelector('.no-messages');
+        if (noMessages) {
+            noMessages.remove();
+        }
+        messageList.appendChild(messageDiv);
         messageList.scrollTop = messageList.scrollHeight;
+    }
 
-        // Form submission validation
-        messageForm.addEventListener('submit', (e) => {
-            if (!contentInput.value.trim()) {
-                contentError.textContent = 'Message cannot be empty';
-                e.preventDefault();
-            }
-        });
+    // Real-time validation
+    contentInput.addEventListener('input', () => {
+        if (!contentInput.value.trim()) {
+            contentError.textContent = 'Message cannot be empty';
+            contentInput.setCustomValidity('Message required');
+        } else {
+            contentError.textContent = '';
+            contentInput.setCustomValidity('');
+        }
     });
+
+    // Enter key to submit form
+    contentInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent newline
+            messageForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    });
+
+    // Form submission via AJAX
+    messageForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!contentInput.value.trim()) {
+            contentError.textContent = 'Message cannot be empty';
+            return;
+        }
+
+        const formData = new FormData(messageForm);
+        const data = {
+            recipient_id: formData.get('recipient_id'),
+            product_id: formData.get('product_id'),
+            content: formData.get('content')
+        };
+
+        try {
+            const response = await fetch("{{ url_for('messaging.send_message') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                contentInput.value = '';
+                contentError.textContent = '';
+                // Message will be appended via WebSocket or polling
+            } else {
+                contentError.textContent = 'Failed to send message';
+            }
+        } catch (error) {
+            contentError.textContent = 'Network error';
+            console.error('Form submission error:', error);
+        }
+    });
+
+    // WebSocket setup with reconnection
+    function connectWebSocket() {
+        const wsUrl = `ws://${window.location.host}/ws/messages/${productId}`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                if ((message.sender_id === userId || message.recipient_id === userId) && message.message_id) {
+                    appendMessage(message, messageList.children.length);
+                    lastMessageTime = message.created_at;
+                }
+            } catch (error) {
+                console.error('WebSocket message error:', error);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected, attempting reconnect in 5s');
+            startPolling();
+            setTimeout(connectWebSocket, 5000); // Reconnect after 5s
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            ws.close();
+        };
+    }
+
+    // AJAX polling as fallback
+    function startPolling() {
+        if (!pollingInterval) {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/messages/${productId}?since=${encodeURIComponent(lastMessageTime)}`);
+                    if (!response.ok) throw new Error('API fetch failed');
+                    const messages = await response.json();
+                    messages.forEach((message, index) => {
+                        if (new Date(message.created_at) > new Date(lastMessageTime)) {
+                            appendMessage(message, messageList.children.length + index);
+                            lastMessageTime = message.created_at;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 5000); // Poll every 5 seconds
+        }
+    }
+
+    // Initialize WebSocket or polling
+    if ('WebSocket' in window && userId) {
+        connectWebSocket();
+    } else {
+        console.warn('WebSocket unavailable or no user ID, using polling');
+        startPolling();
+    }
+
+    // Auto-scroll to bottom on load
+    messageList.scrollTop = messageList.scrollHeight;
+});
 </script>
 {% endblock %}
