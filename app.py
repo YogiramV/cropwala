@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, send_from_directory, url_for, flash, session
 from werkzeug.utils import secure_filename
 import os
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta
 from bson import ObjectId
 from pymongo import MongoClient
 from routes.auth import auth
@@ -19,11 +19,14 @@ import os
 from dotenv import load_dotenv
 from email.message import EmailMessage
 import smtplib
+import pandas as pd
+import pickle
 
 load_dotenv()
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
@@ -33,12 +36,12 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-#Get Gemini Api key
+# Get Gemini Api key
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=API_KEY)
 
-#Inintialize the gemini client 
+# Inintialize the gemini client
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 # System prompt for the chatbot
@@ -73,8 +76,11 @@ if not os.path.exists(UPLOAD_FOLDER):
 conversation_history = {}
 
 # Helper function to check allowed file extensions
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # Register Blueprints
 app.register_blueprint(auth)
@@ -84,22 +90,24 @@ app.register_blueprint(messaging)
 app.register_blueprint(auction)
 
 # Contract routes
+
+
 @app.route('/create_contract/<product_id>', methods=['GET', 'POST'])
 def create_contract(product_id):
     if 'user_id' not in session or session['user_type'] != 'buyer':
         return redirect(url_for('auth.login'))
-    
+
     product = db.products.find_one({'_id': ObjectId(product_id)})
     farmer = db.users.find_one({'_id': ObjectId(product['farmer_id'])})
     buyer = db.users.find_one({'_id': ObjectId(session['user_id'])})
-    
+
     if request.method == 'POST':
         quantity = float(request.form.get('quantity'))
         total_price = float(request.form.get('total_price'))
         delivery_date = request.form.get('delivery_date')
         payment_method = request.form.get('payment_method')
         terms = request.form.get('terms')
-        
+
         contract = {
             'product_id': product_id,
             'farmer_id': product['farmer_id'],
@@ -112,15 +120,15 @@ def create_contract(product_id):
             'status': 'pending',
             'created_at': datetime.now()
         }
-        
+
         result = db.contracts.insert_one(contract)
         contract_id = str(result.inserted_id)
-        
+
         db.products.update_one(
             {'_id': ObjectId(product_id)},
             {'$set': {'status': 'pending_contract'}}
         )
-        
+
         notification = {
             'user_id': product['farmer_id'],
             'type': 'contract_request',
@@ -130,47 +138,49 @@ def create_contract(product_id):
             'created_at': datetime.now()
         }
         db.notifications.insert_one(notification)
-        
+
         flash('Contract request sent successfully!')
         return redirect(url_for('view_contract', contract_id=contract_id))
-    
+
     return render_template('contract/create_contract.html', product=product, farmer=farmer)
+
 
 @app.route('/contract/<contract_id>')
 def view_contract(contract_id):
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    
+
     contract = db.contracts.find_one({'_id': ObjectId(contract_id)})
     product = db.products.find_one({'_id': ObjectId(contract['product_id'])})
     farmer = db.users.find_one({'_id': ObjectId(contract['farmer_id'])})
     buyer = db.users.find_one({'_id': ObjectId(contract['buyer_id'])})
-    
-    return render_template('contract/view_contract.html', 
-                         contract=contract, 
-                         product=product, 
-                         farmer=farmer, 
-                         buyer=buyer,
-                         current_date = datetime.now())
+
+    return render_template('contract/view_contract.html',
+                           contract=contract,
+                           product=product,
+                           farmer=farmer,
+                           buyer=buyer,
+                           current_date=datetime.now())
+
 
 @app.route('/approve_contract/<contract_id>')
 def approve_contract(contract_id):
     if 'user_id' not in session or session['user_type'] != 'farmer':
         return redirect(url_for('auth.login'))
-    
+
     contract = db.contracts.find_one({'_id': ObjectId(contract_id)})
-    
+
     if contract and contract['farmer_id'] == session['user_id']:
         db.contracts.update_one(
             {'_id': ObjectId(contract_id)},
             {'$set': {'status': 'approved'}}
         )
-        
+
         db.products.update_one(
             {'_id': ObjectId(contract['product_id'])},
             {'$set': {'status': 'contracted'}}
         )
-        
+
         notification = {
             'user_id': contract['buyer_id'],
             'type': 'contract_approved',
@@ -180,12 +190,13 @@ def approve_contract(contract_id):
             'created_at': datetime.now()
         }
         db.notifications.insert_one(notification)
-        
+
         flash('Contract approved successfully!')
     else:
         flash('You are not authorized to approve this contract.')
-    
+
     return redirect(url_for('view_contract', contract_id=contract_id))
+
 
 @app.route('/download_contract/<contract_id>')
 def download_contract(contract_id):
@@ -193,32 +204,37 @@ def download_contract(contract_id):
     return redirect(url_for('view_contract', contract_id=contract_id))
 
 # Notification route
+
+
 @app.route('/notifications')
 def notifications():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    
+
     notifications = list(db.notifications.find({
         'user_id': session['user_id'],
         'read': False
     }).sort('created_at', -1))
-    
+
     db.notifications.update_many(
         {'user_id': session['user_id'], 'read': False},
         {'$set': {'read': True}}
     )
-    
+
     return render_template('notifications.html', notifications=notifications, current_date=datetime.now())
 
 # Chatbot routes and its subroutes
 
 #
 
+
 @app.route('/chatbot')
 def chatbot():
     return render_template("chatbot.html")
 
 # Route for handling chat messages
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -244,7 +260,7 @@ def chat():
 
         # Prepare context with location
         context = f"User location: {user_location}\nUser language: {language}\n"
-        
+
         # Create prompt for Gemini API
         full_prompt = f"{system_prompt}\n\n{context}\nUser message: {user_message}"
 
@@ -284,6 +300,8 @@ def chat():
         }), 500
 
 # Helper function to generate suggestion chips using Gemini instead of hardcoded values
+
+
 def generate_suggestions(user_message):
     try:
         suggestion_prompt = f"""
@@ -293,16 +311,17 @@ def generate_suggestions(user_message):
         Format your response as a plain list of 3 items, one per line, no bullets or numbers.
         If the user message doesn't contain enough context, provide general farming-related suggestions.
         """
-        
+
         response = model.generate_content(suggestion_prompt)
         suggestions_text = response.text.strip()
-        
+
         # Split the response into individual suggestions
-        suggestions = [s.strip() for s in suggestions_text.split('\n') if s.strip()]
-        
+        suggestions = [s.strip()
+                       for s in suggestions_text.split('\n') if s.strip()]
+
         # Ensure we have 3 suggestions at most
         suggestions = suggestions[:3]
-        
+
         # If somehow we got no suggestions, use some defaults
         if not suggestions:
             suggestions = [
@@ -310,7 +329,7 @@ def generate_suggestions(user_message):
                 "Natural pest control",
                 "Soil health tips"
             ]
-            
+
         return suggestions
     except Exception as e:
         logger.error(f"Error generating suggestions: {str(e)}")
@@ -321,6 +340,8 @@ def generate_suggestions(user_message):
         ]
 
 # Route for handling image uploads and analysis
+
+
 @app.route("/analyze_image", methods=["POST"])
 def analyze_image():
     try:
@@ -339,7 +360,8 @@ def analyze_image():
             # Securely save the file
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file_path = os.path.join(
+                app.config['UPLOAD_FOLDER'], unique_filename)
             file.save(file_path)
 
             # Read image file for Gemini API
@@ -360,7 +382,8 @@ def analyze_image():
 
             try:
                 # Send image and prompt to Gemini API
-                response = model.generate_content([analysis_prompt, {"mime_type": file.mimetype, "data": image_data}])
+                response = model.generate_content(
+                    [analysis_prompt, {"mime_type": file.mimetype, "data": image_data}])
                 analysis_result = response.text.strip()
 
                 # Clean up the saved file
@@ -412,6 +435,8 @@ def analyze_image():
         }), 500
 
 # Route for handling location-based recommendations
+
+
 @app.route("/location_recommendations", methods=["POST"])
 def location_recommendations():
     try:
@@ -420,7 +445,8 @@ def location_recommendations():
         user_location = data.get("location", "default")
         language = data.get("language", "en")
 
-        logger.info(f"Location recommendation request from {session_id} for {user_location}")
+        logger.info(
+            f"Location recommendation request from {session_id} for {user_location}")
 
         prompt = f"""
         Provide farming recommendations based on the following:
@@ -462,7 +488,8 @@ def location_recommendations():
             })
 
         except Exception as e:
-            logger.error(f"Gemini API error in location recommendations: {str(e)}")
+            logger.error(
+                f"Gemini API error in location recommendations: {str(e)}")
             return jsonify({
                 "response": "👨‍🌾 Sorry, I couldn't generate recommendations. Please try again.",
                 "timestamp": datetime.now().isoformat()
@@ -476,15 +503,19 @@ def location_recommendations():
         }), 500
 
 # Route for serving uploaded files (if needed)
+
+
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-    
+
 # Harishwa - FAQ , About-US
+
 
 @app.route('/about')
 def about():
     return render_template('about.html')
+
 
 @app.route("/FAQ")
 def FAQ():
@@ -505,10 +536,12 @@ def handle_email():
     try:
         # Create the email message
         msg = EmailMessage()
-        msg['Subject'] = f"New message from {item['name']}"  # Subject will indicate the sender's name
+        # Subject will indicate the sender's name
+        msg['Subject'] = f"New message from {item['name']}"
         msg['From'] = item['email']
         msg['To'] = EMAIL_RECEIVER  # Your email address
-        msg.set_content(f"Message from: {item['name']}\n\nEmail: {item['email']}\n\nMessage:\n{item['message']}")
+        msg.set_content(
+            f"Message from: {item['name']}\n\nEmail: {item['email']}\n\nMessage:\n{item['message']}")
 
         # Send the email using Gmail SMTP server
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
@@ -519,6 +552,51 @@ def handle_email():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/npk', methods=['GET', 'POST'])
+def npk_prediction():
+    if request.method == 'POST':
+        # Get form data from the POST request
+        temperature = request.form.get('temperature')
+        moisture = request.form.get('moisture')
+        rainfall = request.form.get('rainfall')
+        ph = request.form.get('ph')
+        carbon = request.form.get('carbon')
+        soil_type = request.form.get('soil')
+        crop = request.form.get('crop')
+
+        input_data = pd.DataFrame(
+            [[temperature, moisture, rainfall, ph, carbon, soil_type, crop]],
+            columns=['Temperature', 'Moisture', 'Rainfall',
+                     'PH', 'Carbon', 'Soil_type', 'Crop']
+        )
+
+        soil_types = ['Loamy Soil', 'Peaty Soil',
+                      'Acidic Soil', 'Neutral Soil', 'Alkaline Soil']
+        crops = ['rice', 'wheat', 'Mung Bean', 'Tea', 'millet', 'maize', 'Lentil', 'Jute', 'Coffee', 'Cotton',
+                 'Ground Nut', 'Peas', 'Rubber', 'Sugarcane', 'Tobacco', 'Kidney Beans', 'Moth Beans', 'Coconut',
+                 'Black gram', 'Adzuki Beans', 'Pigeon Peas', 'Chickpea', 'banana', 'grapes', 'apple', 'mango',
+                 'muskmelon', 'orange', 'papaya', 'pomegranate', 'watermelon']
+
+        for soil in soil_types:
+            input_data[f'Soil_{soil}'] = (
+                input_data['Soil_type'] == soil).astype(int)
+
+        for crop in crops:
+            input_data[f'Crop_{crop}'] = (
+                input_data['Crop'] == crop).astype(int)
+
+        input_data = input_data.drop(columns=['Soil_type', 'Crop'], axis=1)
+
+        return redirect(url_for('model_input_confirmation'))
+
+    return render_template('/npk_prediction.html')
+
+
+@app.route('/model_input_confirmation')
+def model_input_confirmation():
+    return ("Placeholder")
 
 
 if __name__ == '__main__':
