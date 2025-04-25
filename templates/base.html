@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+00<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -825,6 +825,10 @@
             .product-grid {
                 grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             }
+            form ::placeholder{
+                color: white;
+            }
+
         }
 
         @media (max-width: 480px) {
@@ -1021,7 +1025,6 @@
                     <ul>
                         <li><a href="#">Home</a></li>
                         <li><a href="{{url_for('about')}}">About Us</a></li>
-                        <li><a href="#">Services</a></li>
                         <li><a href="#">Contact</a></li>
                         <li><a href="{{url_for('FAQ')}}">FAQ</a></li>
                     </ul>
@@ -1031,8 +1034,6 @@
                     <ul>
                         <li><a href="#">Farming Tips</a></li>
                         <li><a href="#">Market Trends</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">Blog</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
