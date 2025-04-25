@@ -70,12 +70,14 @@
 
     {% if prediction %}
     <div class="prediction-results">
-        <h3>Predicted NPK Values:</h3>
+        <h3>Predicted NPK Values and Crop Yield:</h3>
         <p><strong>Nitrogen:</strong> {{ prediction.nitrogen }}</p>
         <p><strong>Phosphorus:</strong> {{ prediction.phosphorus }}</p>
         <p><strong>Potassium:</strong> {{ prediction.potassium }}</p>
+        <p><strong>Expected Yield (kg/ha):</strong> {{ prediction.yield }}</p>
     </div>
     {% endif %}
+    
 </div>
 {% endblock %}
 

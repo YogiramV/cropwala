@@ -605,11 +605,11 @@ def npk_prediction():
         # Unpack the prediction values
         nitrogen, phosphorus, potassium = prediction[0]
 
-        # Prepare the result to be passed to the template
         prediction_result = {
             'nitrogen': round(nitrogen, 2),
             'phosphorus': round(phosphorus, 2),
-            'potassium': round(potassium, 2)
+            'potassium': round(potassium, 2),
+            'yield': round(yield_prediction[0], 2)
         }
 
     # Render the template and pass the prediction result
