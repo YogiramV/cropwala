@@ -4,3 +4,5 @@ bcrypt
 werkzeug
 python-dotenv
 google.generativeai
+pandas
+scikit-learn
