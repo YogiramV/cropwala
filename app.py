@@ -21,6 +21,7 @@ from email.message import EmailMessage
 import smtplib
 import pandas as pd
 import pickle
+import lightgbm
 
 load_dotenv()
 
@@ -605,11 +606,38 @@ def npk_prediction():
         # Unpack the prediction values
         nitrogen, phosphorus, potassium = prediction[0]
 
+        # Create DataFrame from the input data
+        input_data_yield = pd.DataFrame(
+            [[temperature, moisture, rainfall, ph, nitrogen,
+                phosphorus, potassium, carbon, soil_type, crop]],
+            columns=['Temperature', 'Moisture', 'Rainfall',
+                     'PH', 'Nitrogen', 'Phosphorus', 'Potassium', 'Carbon', 'Soil_type', 'Crop']
+        )
+
+        # One-hot encode the soil type and crop columns
+        for soil in soil_types:
+            input_data_yield[f'Soil_{soil}'] = (
+                input_data_yield['Soil_type'] == soil).astype(int)
+
+        for crop in crops:
+            input_data_yield[f'Crop_{crop}'] = (
+                input_data_yield['Crop'] == crop).astype(int)
+
+        input_data_yield = input_data_yield.drop(
+            columns=['Soil_type', 'Crop'], axis=1)
+
+        with open('datasets/models/yield_lgb_model.pkl', 'rb') as lgb_file:
+            lgb_model = pickle.load(lgb_file)
+
+        yield_prediction = lgb_model.predict(input_data_yield)
+
+        # Prepare the result to be passed to the template
         prediction_result = {
             'nitrogen': round(nitrogen, 2),
             'phosphorus': round(phosphorus, 2),
             'potassium': round(potassium, 2),
             'yield': round(yield_prediction[0], 2)
+
         }
 
     # Render the template and pass the prediction result
