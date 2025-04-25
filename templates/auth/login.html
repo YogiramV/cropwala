@@ -12,21 +12,23 @@
         <div>
             <label for="email" class="flex items-center text-gray-700"><i class="fas fa-envelope mr-2"></i>Email</label>
             <input type="email" id="email" name="email" required
-                   class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+                class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
             <span class="text-red-500 text-sm hidden" id="email-error"></span>
         </div>
         <!-- Password Field -->
         <div>
-            <label for="password" class="flex items-center text-gray-700"><i class="fas fa-lock mr-2"></i>Password</label>
+            <label for="password" class="flex items-center text-gray-700"><i
+                    class="fas fa-lock mr-2"></i>Password</label>
             <input type="password" id="password" name="password" required
-                   class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+                class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
             <span class="text-red-500 text-sm hidden" id="password-error"></span>
         </div>
         <!-- User Type Field -->
         <div>
-            <label for="user_type" class="flex items-center text-gray-700"><i class="fas fa-user-tag mr-2"></i>User Type</label>
+            <label for="user_type" class="flex items-center text-gray-700"><i class="fas fa-user-tag mr-2"></i>User
+                Type</label>
             <select id="user_type" name="user_type" required
-                    class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
+                class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-500">
                 <option value="" disabled selected>Select user type</option>
                 <option value="farmer">Farmer</option>
                 <option value="buyer">Buyer</option>
@@ -34,27 +36,42 @@
             <span class="text-red-500 text-sm hidden" id="user-type-error"></span>
         </div>
         <!-- Submit Button -->
-        <button type="submit"
-                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300 flex items-center justify-center">
+        <button type="submit" style="background-color: #2E7D32;"
+            class="w-full text-white p-2 rounded transition duration-300 flex items-center justify-center hover:opacity-90">
             <i class="fas fa-sign-in-alt mr-2"></i>Login
-            <span class="loading-spinner hidden ml-2 w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
+            <span
+                class="loading-spinner hidden ml-2 w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
         </button>
+
     </form>
     <!-- Register Links -->
     <p class="text-center mt-4 text-gray-600">
         Don't have an account?
-        <a href="{{ url_for('auth.register_farmer') }}" class="text-blue-500 hover:underline">Register as Farmer</a> or
-        <a href="{{ url_for('auth.register_buyer') }}" class="text-blue-500 hover:underline">Register as Buyer</a>
+        <a href="{{ url_for('auth.register_farmer') }}" style="color: #2E7D32;" class="hover:underline">Register as
+            Farmer</a> or
+        <a href="{{ url_for('auth.register_buyer') }}" style="color: #2E7D32;" class="hover:underline">Register as
+            Buyer</a>
     </p>
 </div>
 
 <style>
     /* Shake animation for invalid form */
     @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
     }
+
     #login-form.invalid {
         animation: shake 0.3s ease-in-out;
     }
