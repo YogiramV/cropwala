@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Farmer Dashboard{% endblock %}
 {% block content %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <div class="hero-section">
     <h1>Welcome, {{ session.name }}!</h1>
     <p>Manage your products and connect with buyers seamlessly.</p>
     <a href="{{ url_for('farmer.add_product') }}" class="btn btn-accent btn-pulse"><i class="fas fa-plus-circle"></i> Add New Product</a>
+    <div id="weatherResult"></div>
+    <div id="forecastResult">
+      <div class="forecast-container"></div>
+    </div>
+    
 </div>
 <div class="card dashboard-card">
     <div class="dashboard-stats">
@@ -76,6 +82,50 @@
     </div>
 </div>
 <style>
+ #weatherResult 
+{
+    position: relative;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,-50%)scale(0.8)translateX(-10%)translateY(10%);
+    width: 40%;
+    height: 60px;
+}
+.title h3 
+{
+    font-size: 2em;
+    margin-left: -50px;
+}
+.title 
+{
+    transform: translateX(-80px)translateY(40px);
+}
+.temp-main img 
+{
+    filter: drop-shadow(1px 1px 10px gray);
+    position: absolute;
+    margin-top: -80px;
+    margin-left: 120px;
+}
+    .hero-section {
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
     .hero-section {
         text-align: center;
         padding: 40px 20px;
@@ -249,6 +299,18 @@
 
     .btn-pulse:hover {
         animation: pulse 1s infinite;
+    }
+    @media (max-width:480px)
+    {
+        #weatherResult
+        {
+            height: 80px;
+            margin-top: 30px;
+        }
+        .title h3 
+        {
+            font-size: 2em;
+        }
     }
 
     @media (max-width: 768px) {

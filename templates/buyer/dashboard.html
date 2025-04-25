@@ -1,11 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Buyer Dashboard{% endblock %}
 {% block content %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <div class="hero-section">
     <h1>Welcome, {{ session.name }}!</h1>
     <p>Discover fresh products and active auctions to grow your business.</p>
     <a href="#products" class="btn btn-accent btn-pulse"><i class="fas fa-shopping-basket"></i> Explore Products</a>
+    <div id="weatherResult"></div>
+<div id="forecastResult">
+  <div class="forecast-container"></div>
 </div>
+
+</div>
+
+
+
+
+
 <div class="card dashboard-card">
     <div class="dashboard-stats">
         <div class="stat">
@@ -76,6 +87,31 @@
     </div>
 </div>
 <style>
+ #weatherResult 
+{
+    position: relative;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,-50%)scale(0.8)translateX(-10%)translateY(10%);
+    width: 40%;
+    height: 60px;
+}
+.title h3 
+{
+    font-size: 2em;
+    margin-left: -50px;
+}
+.title 
+{
+    transform: translateX(-80px)translateY(40px);
+}
+.temp-main img 
+{
+    filter: drop-shadow(1px 1px 10px gray);
+    position: absolute;
+    margin-top: -80px;
+    margin-left: 120px;
+}
     .hero-section {
         text-align: center;
         padding: 40px 20px;
@@ -245,7 +281,18 @@
     .btn-pulse:hover {
         animation: pulse 1s infinite;
     }
-
+    @media (max-width:480px)
+    {
+        #weatherResult
+        {
+            height: 80px;
+            margin-top: 30px;
+        }
+        .title h3 
+        {
+            font-size: 2em;
+        }
+    }
     @media (max-width: 768px) {
         .hero-section h1 {
             font-size: 2rem;
@@ -370,5 +417,9 @@
             setInterval(updateTimer, 1000);
         });
     });
+
+
+
+    
 </script>
 {% endblock %}
