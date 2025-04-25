@@ -574,38 +574,6 @@
             transform: scale(1.05);
         }
 
-        .language-selector {
-            position: relative;
-            margin-left: 20px;
-        }
-
-        .language-selector select {
-            appearance: none;
-            background-color: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 5px 25px 5px 10px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .language-selector select:focus {
-            transform: scale(1.01);
-        }
-
-        .language-selector::after {
-            content: '▼';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: white;
-            font-size: 0.7rem;
-            pointer-events: none;
-        }
-
         .theme-toggle {
             background: none;
             border: none;
@@ -967,15 +935,6 @@
                         <li style="--i: 2;"><a href="{{ url_for('auth.register_farmer') }}"><i class="fas fa-user-plus"></i> Register as Farmer</a></li>
                         <li style="--i: 3;"><a href="{{ url_for('auth.register_buyer') }}"><i class="fas fa-shopping-cart"></i> Register as Buyer</a></li>
                     {% endif %}
-                    <li class="language-selector" style="--i: 6;">
-                        <select id="languageSelect">
-                            <option value="en">English</option>
-                            <option value="hi">हिंदी (Hindi)</option>
-                            <option value="te">తెలుగు (Telugu)</option>
-                            <option value="ta">தமிழ் (Tamil)</option>
-                            <option value="mr">मराठी (Marathi)</option>
-                        </select>
-                    </li>
                     <li style="--i: 7;">
                         <button class="theme-toggle" id="themeToggle">
                             <i class="fas fa-moon"></i>
